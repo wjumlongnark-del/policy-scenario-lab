@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Policy Scenario Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#f5f3ee;--panel:#fff;--panel2:#efece5;--text:#1c1e22;--muted:#5f646c;--border:#ddd8ce;--grid:rgba(0,0,0,.07);
+  --accent:#b2412b;--accent2:#2c5a86;--good:#2e8b57;--bad:#c0392b;--warn:#c98a10;--wild:#7a4fb3;--likely:#3a8fb7;
+  --o0:#b2412b;--o1:#2c5a86;--o2:#c98a10;--o3:#2e8b57;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111317;--panel:#1a1d22;--panel2:#23272d;--text:#e9e6e0;--muted:#9ba1a9;--border:#30353c;--grid:rgba(255,255,255,.07);
+    --accent:#e57a62;--accent2:#7fb0de;--good:#4cc28a;--bad:#ef6a5e;--warn:#e6b23e;--wild:#b18ae6;--likely:#6db7da;
+    --o0:#e57a62;--o1:#7fb0de;--o2:#e6b23e;--o3:#4cc28a;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111317;--panel:#1a1d22;--panel2:#23272d;--text:#e9e6e0;--muted:#9ba1a9;--border:#30353c;--grid:rgba(255,255,255,.07);
+  --accent:#e57a62;--accent2:#7fb0de;--good:#4cc28a;--bad:#ef6a5e;--warn:#e6b23e;--wild:#b18ae6;--likely:#6db7da;
+  --o0:#e57a62;--o1:#7fb0de;--o2:#e6b23e;--o3:#4cc28a;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font-family:"IBM Plex Sans Thai",system-ui,sans-serif;font-size:14.5px;line-height:1.55;overflow-x:hidden}
+.mono{font-family:"IBM Plex Mono",monospace}
+header{background:var(--panel);border-bottom:1px solid var(--border);padding:14px 16px}
+.hwrap{max-width:1480px;margin:0 auto;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.brand{font-weight:700;font-size:18px;margin-right:auto}
+.brand small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
+.layout{display:grid;grid-template-columns:320px minmax(0,1fr);gap:16px;padding:16px;max-width:1480px;margin:0 auto}
+@media (max-width:980px){.layout{grid-template-columns:1fr}}
+aside{position:sticky;top:12px;align-self:start;max-height:calc(100vh - 24px);overflow:auto;background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px}
+@media (max-width:980px){aside{position:static;max-height:none}}
+aside h2{font-size:14.5px;margin:6px 0 6px}
+.dtitle{font-size:16px;font-weight:700;line-height:1.35}
+.cat{display:inline-block;font-size:11.5px;padding:1px 8px;border-radius:99px;background:var(--panel2);border:1px solid var(--border);color:var(--muted);margin:4px 4px 0 0}
+.drv{margin:8px 0 10px}
+.drv label{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.drv .v{font-family:"IBM Plex Mono";color:var(--accent);min-width:28px;text-align:right}
+.drv small{display:block;color:var(--muted);font-size:11.5px;line-height:1.35}
+input[type=range]{width:100%;accent-color:var(--accent)}
+input[type=text],input[type=number],select,textarea{width:100%;background:var(--panel2);border:1px solid var(--border);color:var(--text);border-radius:6px;padding:5px 8px;font:inherit;font-size:13.5px}
+textarea{resize:vertical;min-height:56px}
+input[type=number]{font-family:"IBM Plex Mono";font-size:12.5px}
+.btn{border:1px solid var(--border);background:var(--panel2);color:var(--text);border-radius:7px;padding:6px 10px;font:inherit;font-size:13px;cursor:pointer;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn.sm{padding:3px 8px;font-size:12px}
+.btn.danger{color:var(--bad)}
+.row{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.chk{display:flex;gap:8px;align-items:flex-start;font-size:13px;margin:8px 0}
+nav.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px;position:sticky;top:0;z-index:5;background:var(--bg);padding:6px 0}
+nav.tabs button{border:1px solid var(--border);background:var(--panel);color:var(--muted);padding:7px 12px;border-radius:99px;font:inherit;font-size:13.5px;cursor:pointer}
+nav.tabs button.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+section.tab{display:none}section.tab.active{display:block}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media (max-width:1150px){.g4{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.g2,.g3,.g4{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px;min-width:0;margin-bottom:14px}
+.grid>.card{margin-bottom:0}
+.card h3{margin:0 0 4px;font-size:15px}
+.note{color:var(--muted);font-size:12.5px;margin:0 0 10px}
+.kpi .lbl{font-size:12px;color:var(--muted)}
+.kpi .val{font-size:22px;font-weight:700;font-family:"IBM Plex Mono";line-height:1.25}
+.kpi .foot{font-size:11.5px;color:var(--muted)}
+.chart-box{position:relative;height:280px}.chart-box.tall{height:380px}.chart-box.short{height:230px}
+.scroll-x{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border-bottom:1px solid var(--border);padding:6px 7px;text-align:left;vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:12px;background:var(--panel2)}
+td.num{font-family:"IBM Plex Mono";text-align:right;white-space:nowrap}
+.pbar{height:6px;background:var(--panel2);border-radius:4px;overflow:hidden;min-width:50px;margin-top:3px}
+.pbar i{display:block;height:100%}
+.tag{font-size:11px;padding:1px 7px;border-radius:99px;border:1px solid var(--border);white-space:nowrap}
+.t-best{color:var(--good);border-color:var(--good)}.t-likely{color:var(--likely);border-color:var(--likely)}.t-worst{color:var(--bad);border-color:var(--bad)}.t-wild{color:var(--wild);border-color:var(--wild)}
+.narr{font-size:14px;background:var(--panel2);border-radius:8px;padding:10px 12px;border:1px solid var(--border)}
+.narr p{margin:0 0 6px}
+.fgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fgrid .full{grid-column:1/-1}
+@media (max-width:760px){.fgrid{grid-template-columns:1fr}}
+.fl{font-size:12px;color:var(--muted);display:block;margin-bottom:2px}
+.otabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.otabs button{border:1px solid var(--border);background:var(--panel);padding:6px 12px;border-radius:8px;font:inherit;font-size:13.5px;cursor:pointer;color:var(--text)}
+.otabs button.active{border-color:var(--accent);box-shadow:inset 0 -3px 0 var(--accent)}
+.sc-card{border-left:5px solid var(--border)}
+.sc-card.best{border-left-color:var(--good)}.sc-card.likely{border-left-color:var(--likely)}.sc-card.worst{border-left-color:var(--bad)}.sc-card.wild{border-left-color:var(--wild)}
+.sc-head{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.sc-head .p{margin-left:auto;font-family:"IBM Plex Mono";font-size:13px;color:var(--accent)}
+.beta{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:6px}
+.beta label{font-size:12px;color:var(--muted);display:flex;gap:6px;align-items:center;justify-content:space-between}
+.beta select{width:76px;flex:none;padding:3px 4px;font-size:12px}
+.tri input{width:80px}
+.legend-inline{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--muted)}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.pass{color:var(--good);font-weight:600}.fail{color:var(--bad);font-weight:600}
+.theory h4{margin:12px 0 2px;font-size:14px}.theory p{margin:2px 0 6px;font-size:13.5px}
+.formula{font-family:"IBM Plex Mono";font-size:12px;background:var(--panel2);padding:6px 10px;border-radius:6px;overflow-x:auto;white-space:pre}
+.empty{color:var(--muted);font-size:13px;padding:10px;text-align:center;border:1px dashed var(--border);border-radius:8px}
+details>summary{cursor:pointer;font-size:13px;color:var(--muted);margin:6px 0}
+footer{padding:14px;color:var(--muted);font-size:12px;text-align:center}
+@media print{aside,nav.tabs,header .row,.btn{display:none!important}.layout{display:block}section.tab{display:block!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hwrap">
+    <div class="brand">Policy Scenario Lab<small>ห้องปฏิบัติการวิเคราะห์ฉากทัศน์การตัดสินใจเชิงนโยบาย · ใช้ได้กับทุกประเภทนโยบาย</small></div>
+    <div class="row">
+      <select id="selA" style="width:auto;max-width:300px" aria-label="เลือกการวิเคราะห์"></select>
+      <button class="btn primary" id="bNew">+ การวิเคราะห์ใหม่</button>
+      <button class="btn" id="bTpl">แม่แบบตัวอย่าง</button>
+      <button class="btn" id="bDup">ทำสำเนา</button>
+      <button class="btn" id="bExp">ส่งออก JSON</button>
+      <button class="btn" id="bImp">นำเข้า JSON</button>
+      <button class="btn danger" id="bDel">ลบ</button>
+      <input type="file" id="fImp" accept=".json,application/json" hidden>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+<aside id="side"></aside>
+<main>
+  <nav class="tabs" id="tabs">
+    <button data-tab="setup">① ตั้งค่าการวิเคราะห์</button>
+    <button data-tab="sc">② สร้างฉากทัศน์</button>
+    <button data-tab="dash" class="active">③ แดชบอร์ดผลลัพธ์</button>
+    <button data-tab="mc">④ Monte Carlo</button>
+    <button data-tab="sens">⑤ ความอ่อนไหว & จุดพลิก</button>
+    <button data-tab="stake">⑥ ผู้มีส่วนได้เสีย</button>
+    <button data-tab="meth">⑦ กรอบทฤษฎี</button>
+  </nav>
+
+  <section class="tab" id="tab-setup"></section>
+  <section class="tab" id="tab-sc"></section>
+
+  <section class="tab active" id="tab-dash">
+    <div class="grid g4" id="kpis" style="margin-bottom:14px"></div>
+    <div class="card"><h3>บทสรุปอัตโนมัติ</h3><div class="narr" id="narr"></div></div>
+    <div class="grid g2" id="probWrap" style="margin-bottom:14px"></div>
+    <div class="grid g2" style="margin-bottom:14px">
+      <div class="card"><h3>เมทริกซ์ฉากทัศน์ 2×2</h3><p class="note" id="mxNote">ขนาด = ความน่าจะเป็น · สี = ประเภท · รูปทรง = ทางเลือก (● ทำ, ■ ไม่ทำ, ◆ ทางเลือกอื่น)</p><div id="matrix"></div></div>
+      <div class="card"><h3>อรรถประโยชน์คาดหมาย: Rational vs Prospect</h3><p class="note">Rational EU = Σ p·U · Prospect = Σ w(p)·v(U) (λ=2.25, α=0.88, γ=0.61)</p><div class="chart-box"><canvas id="cEU"></canvas></div></div>
+    </div>
+    <div class="card"><h3>ต้นไม้การตัดสินใจ (Decision Tree)</h3><p class="note">□ จุดตัดสินใจ · ○ จุดโอกาส · ความหนาของเส้น = ความน่าจะเป็น</p><div class="scroll-x"><div id="tree" style="min-width:680px"></div></div></div>
+    <div class="grid g2">
+      <div class="card"><h3>ผลกระทบคาดหมายเทียบแต่ละทางเลือก</h3><p class="note">ค่าเฉลี่ยถ่วงน้ำหนักด้วยความน่าจะเป็น · ★ = ทางเลือกที่ให้ผลดีกว่าในตัวชี้วัดนั้น</p><div class="scroll-x"><table id="mTable"></table></div></div>
+      <div class="card"><h3>โปรไฟล์ความเสี่ยง</h3><p class="note">ปรับเป็นสเกล 0–100 · ยิ่งออกด้านนอก = ยิ่งแย่/เสี่ยง</p><div class="chart-box"><canvas id="cRadar"></canvas></div></div>
+    </div>
+    <div class="card" style="margin-top:14px"><h3>คัดกรองแบบ Poliheuristic (Mintz)</h3><p class="note">ขั้น 1 ตัดทางเลือกที่ความเสี่ยงทางการเมือง/สถาบันเกินเกณฑ์ · ขั้น 2 จัดอันดับด้วยอรรถประโยชน์</p><div class="scroll-x"><table id="polyTable"></table></div></div>
+  </section>
+
+  <section class="tab" id="tab-mc">
+    <div class="card">
+      <h3>การจำลอง Monte Carlo</h3>
+      <p class="note">แต่ละรอบ: สุ่มค่าตัวขับเคลื่อนรอบค่าที่ตั้งไว้ (ตาม σ ของแต่ละตัว × ตัวคูณ) → คำนวณความน่าจะเป็น → สุ่มฉากทัศน์ → สุ่มผลลัพธ์จากการแจกแจงสามเหลี่ยม</p>
+      <div class="grid g4">
+        <div class="drv"><label>จำนวนรอบ <span class="v" id="nV">10000</span></label><input type="range" id="mcN" min="1000" max="30000" step="1000" value="10000"></div>
+        <div class="drv"><label>ตัวคูณความไม่แน่นอน <span class="v" id="sigV">1.0</span></label><input type="range" id="mcS" min="0" max="3" step="0.1" value="1"></div>
+        <div class="drv"><label>ตัวชี้วัดที่แสดง</label><select id="mcMetric"></select></div>
+        <div class="row" style="align-items:flex-end"><button class="btn primary" id="runMC">▶ รันการจำลอง</button><span class="note" id="mcInfo" style="margin:0"></span></div>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-bottom:14px">
+      <div class="card"><h3>การแจกแจงอรรถประโยชน์</h3><div class="chart-box"><canvas id="hU"></canvas></div></div>
+      <div class="card"><h3 id="hMtitle">การแจกแจงตัวชี้วัด</h3><div class="chart-box"><canvas id="hM"></canvas></div></div>
+    </div>
+    <div class="card"><h3>สรุปเชิงสถิติ (P10 / P50 / P90)</h3><p class="note">P10–P90 คือช่วงที่ผลลัพธ์ 80% ของการจำลองตกอยู่</p><div class="scroll-x"><table id="mcTable"></table></div></div>
+  </section>
+
+  <section class="tab" id="tab-sens">
+    <div class="card">
+      <h3>Tornado Chart</h3>
+      <div class="row" style="margin-bottom:8px"><span class="note" style="margin:0">ตัวชี้วัด:</span>
+        <button class="btn sm" data-tm="delta">ประโยชน์สุทธิของการตัดสินใจ (ΔEU)</button>
+        <button class="btn sm" data-tm="worst">P(Worst) ของทางเลือกที่โฟกัส</button>
+        <button class="btn sm" data-tm="eu">EU ของทางเลือกที่โฟกัส</button></div>
+      <p class="note">ปรับตัวขับเคลื่อนทีละตัวไปที่ 0 และ 100 โดยตรึงตัวอื่นไว้ — แถบยาว = ปัจจัยที่ควรเฝ้าติดตามมากที่สุด</p>
+      <div class="chart-box tall"><canvas id="cTor"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>จุดพลิกการตัดสินใจ (Break-even / Tipping Points)</h3>
+      <p class="note">ค่าของตัวขับเคลื่อนแต่ละตัว (เมื่อตัวอื่นคงที่) ที่ทำให้ "ทำ" กับ "ไม่ทำ" ให้อรรถประโยชน์เท่ากัน — ถ้าข้ามจุดนี้ คำแนะนำจะเปลี่ยน</p>
+      <div class="scroll-x"><table id="beTable"></table></div>
+    </div>
+  </section>
+
+  <section class="tab" id="tab-stake"></section>
+
+  <section class="tab" id="tab-meth">
+    <div class="grid g2">
+      <div class="card theory">
+        <h3>กรอบแนวคิดและวิธีคำนวณ</h3>
+        <h4>1. การวิเคราะห์ทางเลือก "ทำ vs ไม่ทำ" (Do-nothing baseline) — OECD Regulatory Impact Assessment</h4>
+        <p>การประเมินผลกระทบนโยบายที่ดีต้องเทียบกับกรณีฐาน "ไม่ดำเนินการ" เสมอ เพราะการไม่ตัดสินใจก็มีผลลัพธ์และต้นทุนของมันเอง</p>
+        <h4>2. Scenario Planning — Schwartz (1991) / Shell และ Futures Cone — Voros (2003)</h4>
+        <p>ประเภทฉากทัศน์: <b>Best</b> (พึงประสงค์), <b>Likely</b> (น่าจะเป็น), <b>Worst</b> (เลวร้าย), <b>Wildcard</b> (โอกาสต่ำแต่ผลกระทบสูง) พร้อมตัวบ่งชี้เตือนล่วงหน้า</p>
+        <h4>3. PESTEL / ประเภทนโยบาย</h4>
+        <p>หมวดหมู่การวิเคราะห์ (เศรษฐกิจ สังคม กฎหมาย การเมือง ความมั่นคง ฯลฯ) ใช้กำหนดชุดตัวขับเคลื่อนและตัวชี้วัดตั้งต้น</p>
+        <h4>4. Multinomial Logit</h4>
+        <div class="formula">zₛ = ln(wₛ) + Σ_d βₛd · (x_d − 50)/50
+P(s | option) = exp(zₛ) / Σₖ exp(zₖ)</div>
+        <p>wₛ = ความเป็นไปได้ตั้งต้น · βₛd = ทิศทางและขนาดที่ตัวขับเคลื่อน d ผลักดันฉากทัศน์ s (−2 ถึง +2)</p>
+        <h4>5. Expected Utility — Bueno de Mesquita (1981)</h4>
+        <div class="formula">EU(option) = Σₛ P(s) · U(s)
+ΔEU = EU(ทำ) − EU(ไม่ทำ)   → ประโยชน์สุทธิของการตัดสินใจ</div>
+        <h4>6. Prospect Theory — Kahneman & Tversky (1979)</h4>
+        <div class="formula">v(x) = x^0.88 (x≥0) ; −2.25·(−x)^0.88 (x&lt;0)
+w(p) = p^γ / (p^γ + (1−p)^γ)^(1/γ),  γ = 0.61</div>
+        <h4>7. Poliheuristic Theory — Mintz (2004)</h4>
+        <h4>8. Monte Carlo + Triangular Distribution (PERT)</h4>
+        <h4>9. One-way Sensitivity & Break-even Analysis</h4>
+        <h4>10. Stakeholder Analysis — Mendelow (1991) Power–Interest Grid และแบบจำลองถ่วงน้ำหนักตำแหน่ง (Bueno de Mesquita; Black's Median Voter)</h4>
+        <div class="formula">ตำแหน่งที่คาด = Σ (ตำแหน่ง × อำนาจ × ความสำคัญ) / Σ (อำนาจ × ความสำคัญ)</div>
+      </div>
+      <div class="card theory">
+        <h3>วิธีใช้งาน</h3>
+        <p><b>1.</b> กด "+ การวิเคราะห์ใหม่" ตั้งชื่อ เลือกประเภท ระบบจะเติมตัวขับเคลื่อนและตัวชี้วัดตั้งต้นของประเภทนั้นให้ (แก้ไขได้ทั้งหมด)</p>
+        <p><b>2.</b> แท็บ ② เพิ่มฉากทัศน์แยกตามทางเลือก "ถ้าตัดสินใจทำ" และ "ถ้าไม่ทำ" กำหนดความเป็นไปได้ตั้งต้น อรรถประโยชน์ ผลกระทบ และความอ่อนไหวต่อตัวขับเคลื่อน</p>
+        <p><b>3.</b> ปรับแถบเลื่อนตัวขับเคลื่อนด้านซ้ายเพื่อทดสอบ "ถ้า...แล้ว..." ผลลัพธ์ทุกแท็บอัปเดตทันที</p>
+        <p><b>4.</b> ใช้แท็บ ⑤ หาว่าปัจจัยใดสำคัญที่สุด และค่าใดที่ทำให้คำแนะนำพลิก</p>
+        <p><b>5.</b> ข้อมูลบันทึกอัตโนมัติในเบราว์เซอร์นี้ · ใช้ "ส่งออก JSON" เพื่อสำรองหรือแชร์ให้ผู้อื่นนำเข้า</p>
+        <h3 style="margin-top:14px">ข้อจำกัด</h3>
+        <p>• ค่าทุกตัวเป็นการประเมินเชิงอัตวิสัย ควรปรับเทียบด้วยกระบวนการ Delphi หรือข้อมูลเชิงประจักษ์</p>
+        <p>• ฉากทัศน์ในแต่ละทางเลือกถูกสมมติให้แยกขาดกัน (mutually exclusive) และไม่พิจารณาลำดับเวลา</p>
+        <p>• อรรถประโยชน์สะท้อนมุมมองของ "ผู้ตัดสินใจ" ที่ระบุ — ควรวิเคราะห์ซ้ำจากมุมมองผู้มีส่วนได้เสียอื่น</p>
+        <p>• แม่แบบตัวอย่างใช้ค่าสมมติเพื่อสาธิตเท่านั้น ไม่ใช่การพยากรณ์หรือข้อเท็จจริงล่าสุด</p>
+      </div>
+    </div>
+  </section>
+</main>
+</div>
+<footer>Policy Scenario Lab · เครื่องมือเพื่อการศึกษาและฝึกคิดเชิงนโยบาย · ผลลัพธ์ขึ้นกับสมมติฐานที่ผู้ใช้กำหนด</footer>
+
+<script>
+/* ============ CATEGORIES ============ */
+const CATS={
+ econ:{name:'เศรษฐกิจ',drivers:[['ภาวะเศรษฐกิจโลก','สูง = เอื้ออำนวย'],['ความเชื่อมั่นผู้บริโภค/นักลงทุน',''],['ช่องว่างทางการคลัง (Fiscal space)','สูง = มีงบ/หนี้ต่ำ'],['แรงกดดันเงินเฟ้อ',''],['เสถียรภาพทางการเมือง','']],
+   metrics:[['การเติบโต GDP','%','high'],['เงินเฟ้อ','%','low'],['ภาระการคลัง','พันล้านบาท','low'],['ความนิยมรัฐบาล','%','high']]},
+ social:{name:'สังคม/สวัสดิการ',drivers:[['การยอมรับของประชาชน',''],['ศักยภาพหน่วยงานปฏิบัติ',''],['งบประมาณที่มี',''],['ความเหลื่อมล้ำเดิม','สูง = เหลื่อมล้ำมาก'],['การสื่อสารสาธารณะ','']],
+   metrics:[['กลุ่มเป้าหมายได้รับประโยชน์','%','high'],['ความเหลื่อมล้ำ (Gini)','0–100','low'],['ต้นทุนโครงการ','พันล้านบาท','low'],['ความพึงพอใจประชาชน','%','high']]},
+ law:{name:'กฎหมาย/นิติบัญญัติ',drivers:[['ความชอบด้วยรัฐธรรมนูญ','สูง = มั่นคงทางกฎหมาย'],['เสียงสนับสนุนในสภา',''],['ศักยภาพการบังคับใช้',''],['แรงต้านกลุ่มผลประโยชน์',''],['แนวโน้มการตีความของศาล','สูง = เป็นคุณ']],
+   metrics:[['ความเสี่ยงถูกศาลระงับ','%','low'],['อัตราการปฏิบัติตาม','%','high'],['ระยะเวลาสู่การบังคับใช้','เดือน','low'],['ความเชื่อมั่นหลักนิติธรรม','0–100','high']]},
+ pol:{name:'การเมือง',drivers:[['เสถียรภาพรัฐบาลผสม',''],['ความนิยมผู้นำ',''],['ความแข็งแรงฝ่ายค้าน',''],['การเคลื่อนไหวภาคประชาสังคม',''],['กระแสสื่อ/โซเชียล','สูง = เป็นบวก']],
+   metrics:[['คะแนนนิยม','%','high'],['เสถียรภาพรัฐบาล','0–100','high'],['ความขัดแย้งทางสังคม','0–100','low'],['ความเสี่ยงยุบสภา/ปรับ ครม.','%','low']]},
+ mil:{name:'การทหาร/ความมั่นคง',drivers:[['ดุลกำลังทหาร','สูง = ได้เปรียบ'],['ความแข็งแรงแนวร่วม',''],['แรงสนับสนุนในประเทศ',''],['การแทรกแซงของมหาอำนาจ',''],['ความเหนียวแน่นของคู่กรณี','สูง = ต่อต้านได้มาก']],
+   metrics:[['ระยะเวลา','เดือน','low'],['ต้นทุน','พันล้าน$','low'],['ดัชนีความสูญเสียมนุษย์','0–100','low'],['เสถียรภาพภูมิภาค','0–100','high']]},
+ intl:{name:'การต่างประเทศ/การค้า',drivers:[['ความสัมพันธ์ทวิภาคีเดิม',''],['โอกาสการตอบโต้ของคู่กรณี',''],['แนวร่วมพหุภาคี',''],['การพึ่งพาทางเศรษฐกิจ','สูง = พึ่งพามาก'],['แรงกดดันภายในประเทศ','']],
+   metrics:[['มูลค่าการค้า','% เปลี่ยนแปลง','high'],['ดัชนีความสัมพันธ์','0–100','high'],['ต้นทุนต่อผู้บริโภค','% ราคา','low'],['สถานะการต่อรอง','0–100','high']]},
+ env:{name:'สิ่งแวดล้อม/พลังงาน',drivers:[['ความพร้อมเทคโนโลยี',''],['ต้นทุนการปรับตัวของภาคธุรกิจ',''],['แรงกดดันระหว่างประเทศ',''],['การยอมรับของชุมชน',''],['ราคาพลังงาน','']],
+   metrics:[['การปล่อยก๊าซเรือนกระจก','% เปลี่ยนแปลง','low'],['ต้นทุนทางเศรษฐกิจ','พันล้านบาท','low'],['การจ้างงานสีเขียว','พันตำแหน่ง','high'],['คุณภาพอากาศ','0–100','high']]},
+ health:{name:'สาธารณสุข',drivers:[['ศักยภาพระบบบริการ',''],['การยอมรับของประชาชน',''],['งบประมาณสาธารณสุข',''],['ความรุนแรงของปัญหา',''],['บุคลากรทางการแพทย์','']],
+   metrics:[['ประชากรได้รับบริการ','%','high'],['ภาระโรค (DALYs)','0–100','low'],['ต้นทุน','พันล้านบาท','low'],['ความพึงพอใจ','%','high']]},
+ tech:{name:'เทคโนโลยี/ดิจิทัล',drivers:[['ความพร้อมโครงสร้างพื้นฐาน',''],['ทักษะดิจิทัลของประชาชน',''],['ความเสี่ยงไซเบอร์',''],['การลงทุนภาคเอกชน',''],['กรอบกฎหมายกำกับดูแล','สูง = ชัดเจน']],
+   metrics:[['อัตราการใช้งาน','%','high'],['มูลค่าเศรษฐกิจดิจิทัล','% GDP','high'],['เหตุละเมิดข้อมูล','0–100','low'],['ต้นทุน','พันล้านบาท','low']]},
+ edu:{name:'การศึกษา',drivers:[['ความพร้อมครู/บุคลากร',''],['งบประมาณ',''],['การยอมรับของผู้ปกครอง',''],['ความเหลื่อมล้ำระหว่างพื้นที่',''],['ความต่อเนื่องเชิงนโยบาย','']],
+   metrics:[['ผลสัมฤทธิ์ทางการเรียน','0–100','high'],['อัตราออกกลางคัน','%','low'],['ต้นทุน','พันล้านบาท','low'],['ความพึงพอใจ','%','high']]},
+};
+
+/* ============ HELPERS ============ */
+const $=s=>document.querySelector(s);
+const $$=s=>[...document.querySelectorAll(s)];
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const pct=v=>(v*100).toFixed(1)+'%';
+const triMean=t=>(+t[0]+ +t[1]+ +t[2])/3;
+const fmt=v=>{const a=Math.abs(v);return a>=1000?Math.round(v).toLocaleString():a>=100?v.toFixed(0):a>=10?v.toFixed(1):v.toFixed(2);};
+const TYPES={best:'Best case',likely:'Likely',worst:'Worst case',wild:'Wildcard'};
+const KINDS={do:'ตัดสินใจทำ',not:'ไม่ทำ (สถานะเดิม)',alt:'ทางเลือกอื่น'};
+const typeColor=t=>css({best:'--good',likely:'--likely',worst:'--bad',wild:'--wild'}[t]);
+const optColor=i=>css('--o'+(i%4));
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;}}
+function triSample(t,r){let [a,c,b]=t.map(Number);if(b<a)[a,b]=[b,a];c=clamp(c,a,b);if(b===a)return a;const u=r(),f=(c-a)/(b-a);return u<f?a+Math.sqrt(u*(b-a)*(c-a)):b-Math.sqrt((1-u)*(b-a)*(b-c));}
+function normal(r){let u=0,v=0;while(!u)u=r();while(!v)v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+function q(arr,p){const s=[...arr].sort((a,b)=>a-b);return s[Math.floor(p*(s.length-1))];}
+
+/* ============ TEMPLATE BUILDER ============ */
+// sc: [name,type,weight,util,pol,[x,y],desc,signs,[[a,c,b]...per metric],[beta per driver]]
+function build(t){
+  const metrics=t.metrics.map(m=>({id:uid(),name:m[0],unit:m[1],better:m[2]}));
+  const drivers=t.drivers.map(d=>({id:uid(),name:d[0],hint:d[1]||'',value:d[2]??50,sigma:d[3]??10}));
+  const options=t.options.map(o=>({id:uid(),name:o.name,kind:o.kind,scenarios:(o.sc||[]).map(s=>{
+    const sc={id:uid(),name:s[0],type:s[1],weight:s[2],util:s[3],pol:s[4],pos:s[5]||[50,50],desc:s[6]||'',signs:s[7]||'',m:{},beta:{}};
+    metrics.forEach((m,i)=>sc.m[m.id]=(s[8]&&s[8][i])?s[8][i].slice():[0,0,0]);
+    drivers.forEach((d,i)=>sc.beta[d.id]=(s[9]&&s[9][i])||0);return sc;})}));
+  return {id:uid(),title:t.title,category:t.category,actor:t.actor||'',decision:t.decision||'',horizon:t.horizon||'',desc:t.desc||'',
+    axes:t.axes||{x:'ความรุนแรงของผลกระทบ',y:'ขอบเขตการแพร่กระจาย'},metrics,drivers,options,
+    stakeholders:(t.stake||[]).map(s=>({id:uid(),name:s[0],position:s[1],power:s[2],salience:s[3]})),
+    settings:{thr:55,prospect:false,focus:0,mcN:10000,mcS:1,tm:'delta',scTab:0}};
+}
+function blank(cat,title){
+  const C=CATS[cat];const M=C.metrics.length,D=C.drivers.length;const z=()=>new Array(M).fill(0).map(()=>[0,0,0]);
+  return build({title:title||'การวิเคราะห์นโยบายใหม่',category:cat,actor:'',decision:'',horizon:'12 เดือน',
+    metrics:C.metrics,drivers:C.drivers.map(d=>[d[0],d[1],50,10]),
+    options:[{name:'ตัดสินใจดำเนินนโยบาย',kind:'do',sc:[['ผลลัพธ์ดีที่สุด','best',30,50,15,[25,25],'',' ',z()],['ผลลัพธ์ที่น่าจะเป็น','likely',50,5,40,[50,45],'','',z()],['ผลลัพธ์เลวร้ายที่สุด','worst',20,-50,75,[75,75],'','',z()]]},
+             {name:'ไม่ดำเนินนโยบาย (คงสถานะเดิม)',kind:'not',sc:[['สถานการณ์ดีขึ้นเอง','best',25,30,20,[30,20],'','',z()],['สถานะเดิมต่อเนื่อง','likely',55,-5,40,[50,40],'','',z()],['ปัญหาลุกลามเพราะไม่ทำ','worst',20,-45,70,[70,70],'','',z()]]}],
+    stake:[['ผู้ตัดสินใจหลัก',80,90,90],['ฝ่ายค้าน/ผู้คัดค้าน',25,50,70],['ประชาชนกลุ่มเป้าหมาย',65,30,70]]});
+}
+const TEMPLATES=[
+ ()=>build({title:'เฟดขึ้นอัตราดอกเบี้ยนโยบาย 0.25%',category:'econ',actor:'คณะกรรมการ FOMC ธนาคารกลางสหรัฐ',decision:'ขึ้นอัตราดอกเบี้ยนโยบาย 25 bps ในการประชุมครั้งถัดไป',horizon:'12 เดือน',
+  desc:'แม่แบบสาธิต: ค่าตัวเลขทั้งหมดเป็นสมมติฐาน ปรับให้ตรงข้อมูลล่าสุดก่อนใช้งานจริง',axes:{x:'ความเสียหายต่อเศรษฐกิจจริง',y:'แรงกดดันเงินเฟ้อคงค้าง'},
+  metrics:[['การเติบโต GDP สหรัฐ','%','high'],['เงินเฟ้อ PCE','%','low'],['อัตราว่างงาน','%','low'],['ดัชนีความเชื่อมั่นตลาด','0–100','high']],
+  drivers:[['แรงกดดันเงินเฟ้อ','สูง = เงินเฟ้อเหนียวแน่น',55,10],['ความแข็งแกร่งตลาดแรงงาน','',50,10],['ความเปราะบางภาคการเงิน','สูง = เปราะบาง',40,12],['ความน่าเชื่อถือ/อิสระของเฟด','',60,10],['ผลกระทบภาษีนำเข้า/การค้าโลก','สูง = กดดันราคามาก',55,12],['ตลาดคาดการณ์การขึ้นดอกเบี้ยไว้แล้ว','สูง = ไม่เซอร์ไพรส์',40,10]],
+  options:[{name:'ขึ้นดอกเบี้ย',kind:'do',sc:[
+    ['Soft landing: เงินเฟ้อลดโดยเศรษฐกิจไม่สะดุด','best',35,55,20,[20,25],'เงินเฟ้อกลับสู่เป้าหมาย การจ้างงานชะลอเล็กน้อย ความน่าเชื่อถือของเฟดเพิ่มขึ้น','เงินเฟ้อพื้นฐานลดต่อเนื่อง 3 เดือน\nการจ้างงานนอกภาคเกษตรเป็นบวก\nส่วนต่างอัตราผลตอบแทนพันธบัตรไม่หัวกลับ',[[1.2,1.8,2.4],[2.0,2.4,2.9],[4.0,4.3,4.7],[55,65,75]],[1,1,-1,1,-0.5,1]],
+    ['คุมเงินเฟ้อได้แต่เศรษฐกิจชะลอ','likely',40,10,45,[45,35],'เงินเฟ้อค่อย ๆ ลด แต่การลงทุนและการบริโภคชะลอ การว่างงานเพิ่มขึ้นปานกลาง','ยอดค้าปลีกชะลอ\nสินเชื่อธุรกิจลดลง',[[0.3,0.9,1.5],[2.1,2.6,3.0],[4.4,4.9,5.5],[40,50,60]],[0,-0.5,0.3,0,0,0]],
+    ['Hard landing: เศรษฐกิจถดถอย','worst',20,-55,80,[78,30],'การขึ้นดอกเบี้ยซ้ำเติมเศรษฐกิจที่อ่อนแอ การจ้างงานหดตัว เกิดภาวะถดถอย','ผู้ขอรับสวัสดิการว่างงานพุ่ง\nกำไรบริษัทลดลงต่อเนื่อง',[[-2,-0.8,0.3],[1.5,2.2,2.8],[5.2,6.0,7.5],[20,32,45]],[-0.8,-1.2,1.5,0,0.8,-1]],
+    ['วิกฤตภาคการเงิน','wild',5,-80,95,[90,20],'ต้นทุนเงินทุนที่สูงขึ้นกระตุ้นปัญหาสภาพคล่องในธนาคารขนาดกลางหรือตลาดอสังหาพาณิชย์','หุ้นธนาคารภูมิภาคร่วงแรง\nเงินฝากไหลออก',[[-4,-2,-0.5],[1,2,3],[6,7.5,9.5],[5,18,30]],[0,0,2,-0.5,0,-1]]]},
+   {name:'คงดอกเบี้ย',kind:'not',sc:[
+    ['เงินเฟ้อชะลอลงเอง','best',35,45,15,[20,20],'แรงกดดันราคาบรรเทาลงตามธรรมชาติ เศรษฐกิจเติบโตต่อเนื่อง','ราคาพลังงานลดลง\nค่าจ้างเติบโตชะลอ',[[1.5,2.1,2.7],[2.2,2.6,3.0],[3.9,4.2,4.5],[55,66,76]],[-1.5,0,0,0.5,-0.8,0]],
+    ['เงินเฟ้อหนืด ต้องขึ้นแรงภายหลัง','likely',40,-15,50,[40,65],'เงินเฟ้อค้างอยู่เหนือเป้า ทำให้ต้องขึ้นดอกเบี้ยแรงกว่าเดิมในอนาคต','เงินเฟ้อพื้นฐานไม่ลด\nค่าจ้างเร่งตัว',[[1.0,1.6,2.2],[2.8,3.4,4.0],[3.9,4.3,4.8],[40,50,60]],[1.2,0.6,0,0,0.6,0]],
+    ['คาดการณ์เงินเฟ้อหลุดกรอบ ความน่าเชื่อถือเสื่อม','worst',20,-55,75,[55,88],'ตลาดมองว่าเฟดไม่เป็นอิสระ คาดการณ์เงินเฟ้อระยะยาวสูงขึ้น ผลตอบแทนพันธบัตรระยะยาวพุ่ง','Breakeven inflation 5y5y สูงขึ้น\nดอลลาร์อ่อนค่าเร็ว',[[0.5,1.2,2.0],[3.5,4.5,6.0],[4.0,4.6,5.5],[25,35,48]],[1.5,0,0,-1.8,0.8,0.5]]]}],
+  stake:[['กรรมการ FOMC สายเหยี่ยว',85,90,90],['กรรมการ FOMC สายพิราบ',25,85,85],['ฝ่ายบริหาร (ทำเนียบขาว)',10,55,90],['ตลาดพันธบัตร/นักลงทุน',55,70,80],['ภาคธุรกิจ/SMEs',25,40,70],['ธนาคารพาณิชย์',60,55,65],['ครัวเรือน/ผู้กู้',30,30,60]]}),
+ ()=>build({title:'สหรัฐฯ ขึ้นภาษีนำเข้าระลอกใหม่กับคู่ค้าหลัก',category:'intl',actor:'ประธานาธิบดีสหรัฐฯ (ฝ่ายบริหาร)',decision:'ประกาศขึ้นภาษีนำเข้าเพิ่มกับคู่ค้าหลักภายใต้อำนาจฝ่ายบริหาร',horizon:'12–18 เดือน',
+  desc:'แม่แบบสาธิต: ค่าตัวเลขเป็นสมมติฐาน ควรปรับตามมาตรการจริงและข้อมูลล่าสุด',axes:{x:'ต้นทุนต่อเศรษฐกิจสหรัฐ',y:'การขยายวงความขัดแย้งทางการค้า'},
+  metrics:[['การเติบโต GDP สหรัฐ','%','high'],['เงินเฟ้อ CPI','%','low'],['รายได้ภาษีศุลกากร','พันล้าน$/ปี','high'],['คะแนนนิยมด้านเศรษฐกิจ','%','high']],
+  drivers:[['ความเป็นไปได้ที่คู่ค้าตอบโต้','',55,12],['ความสามารถย้ายฐานผลิตกลับสหรัฐ','',35,10],['การส่งผ่านราคาสู่ผู้บริโภค','สูง = ส่งผ่านมาก',60,10],['ความเสี่ยงถูกศาล/สภาระงับ','',45,15],['แรงสนับสนุนในสภาและพรรค','',55,10],['ความแข็งแรงเศรษฐกิจสหรัฐ','',55,10]],
+  options:[{name:'ขึ้นภาษีนำเข้า',kind:'do',sc:[
+    ['ใช้เป็นแต้มต่อ ได้ข้อตกลงการค้าใหม่','best',30,50,25,[25,25],'คู่ค้ายอมเปิดตลาด/ลงทุนในสหรัฐ ภาษีบางส่วนถูกลดลงตามข้อตกลง','คู่ค้าประกาศแพ็กเกจลงทุน\nตารางเจรจาชัดเจน',[[1.6,2.0,2.5],[2.6,3.0,3.4],[150,220,300],[42,48,55]],[-1.2,0.5,-0.3,-0.5,0.5,0.3]],
+    ['ภาษีคงอยู่ ราคาสินค้าสูงขึ้นปานกลาง','likely',40,0,50,[55,45],'รายได้ศุลกากรเพิ่ม แต่ผู้บริโภคและผู้นำเข้ารับภาระ การเติบโตชะลอเล็กน้อย','ราคาสินค้าคงทนเพิ่ม\nสต็อกนำเข้าล่วงหน้าลดลง',[[1.0,1.5,2.0],[3.0,3.4,3.9],[250,320,400],[38,43,48]],[0,0,0.6,0,0,0]],
+    ['สงครามการค้าตอบโต้ลุกลาม','worst',20,-55,75,[78,82],'คู่ค้าตอบโต้หลายรอบ ห่วงโซ่อุปทานสะดุด ภาคเกษตรส่งออกเสียหาย','คู่ค้าประกาศมาตรการตอบโต้\nดัชนี PMI การส่งออกหดตัว',[[-0.5,0.4,1.2],[3.5,4.2,5.0],[200,280,350],[30,36,42]],[0.5,-0.5,0.5,0,0,-0.5]],
+    ['ศาล/สภาระงับ ต้องคืนภาษี','wild',10,-30,70,[40,30],'มาตรการถูกวินิจฉัยว่าเกินอำนาจ ต้องคืนเงินภาษีและเกิดความไม่แน่นอนเชิงนโยบาย','คำวินิจฉัยของศาล\nมติสภาจำกัดอำนาจ',[[1.2,1.7,2.2],[2.7,3.0,3.3],[0,60,150],[35,40,46]],[0,0,0,2,-1,0]]]},
+   {name:'ไม่ขึ้นภาษี (คงอัตราเดิม)',kind:'not',sc:[
+    ['การค้าเสถียร เงินเฟ้อชะลอ','best',40,25,40,[20,20],'ตลาดคลายความกังวล ต้นทุนนำเข้าคงที่ แต่ถูกวิจารณ์ว่าอ่อนข้อ','ราคานำเข้าคงที่\nการลงทุนฟื้น',[[1.8,2.2,2.6],[2.4,2.7,3.0],[80,100,120],[40,45,50]],[-0.5,0,0,0,-0.5,0.8]],
+    ['เสียแต้มต่อการเจรจา ดุลการค้าไม่ดีขึ้น','likely',45,-10,55,[40,35],'คู่ค้าไม่มีแรงจูงใจเปิดตลาด ประเด็นขาดดุลยังคงอยู่','การเจรจาหยุดชะงัก',[[1.6,2.0,2.4],[2.5,2.8,3.1],[80,100,120],[36,41,46]],[0.3,0,0,0,0.5,0]],
+    ['คู่ค้าเอาเปรียบเพิ่ม อุตสาหกรรมในประเทศหดตัว','worst',15,-35,65,[60,55],'สินค้านำเข้าราคาต่ำทะลัก ภาคการผลิตบางสาขาปิดกิจการ','การจ้างงานภาคการผลิตลด\nนำเข้าทุ่มตลาดเพิ่ม',[[1.2,1.7,2.1],[2.3,2.6,2.9],[80,100,120],[32,37,42]],[0,-0.8,0,0,0.5,-0.8]]]}],
+  stake:[['ฝ่ายบริหาร',90,95,95],['รีพับลิกันในสภา',65,70,60],['เดโมแครตในสภา',20,55,70],['อุตสาหกรรมที่ได้รับการคุ้มครอง',80,40,80],['ผู้นำเข้า/ค้าปลีก',15,50,85],['เกษตรกรส่งออก',30,40,85],['คู่ค้าหลัก (เช่น จีน EU)',10,70,90]]}),
+ ()=>build({title:'โครงการคนละครึ่งพลัส (รัฐร่วมจ่ายค่าสินค้า)',category:'econ',actor:'รัฐบาลไทย / กระทรวงการคลัง',decision:'ดำเนินโครงการคนละครึ่งพลัสเพื่อกระตุ้นการบริโภคและช่วยร้านค้ารายย่อย',horizon:'6–12 เดือน',
+  desc:'แม่แบบสาธิต: ค่าตัวเลขเป็นสมมติฐาน ปรับให้ตรงกับงบประมาณและเงื่อนไขโครงการจริงก่อนใช้งาน',axes:{x:'ภาระทางการคลัง',y:'ความเสี่ยงทางการเมือง'},
+  metrics:[['การเติบโต GDP','%','high'],['หนี้สาธารณะต่อ GDP','%','low'],['ดัชนีรายได้ร้านค้ารายย่อย','0–100','high'],['ความนิยมรัฐบาล','%','high']],
+  drivers:[['ระดับการเข้าร่วมของประชาชน/ร้านค้า','',65,10],['ช่องว่างทางการคลัง','สูง = มีพื้นที่การคลังมาก',35,10],['ความเสี่ยงการรั่วไหล/ทุจริต','',40,12],['ภาวะเศรษฐกิจโลก/ส่งออก','สูง = เอื้ออำนวย',40,12],['ความเชื่อมั่นผู้บริโภค','',40,10],['เสถียรภาพทางการเมือง','',40,12]],
+  options:[{name:'ดำเนินโครงการ',kind:'do',sc:[
+    ['กระตุ้นการบริโภคได้ดี ตัวคูณสูง','best',30,45,15,[30,20],'เงินหมุนเวียนในเศรษฐกิจฐานราก ร้านค้ารายย่อยรายได้เพิ่ม ความนิยมรัฐบาลดีขึ้น','ยอดใช้จ่ายผ่านแอปสูงกว่าเป้า\nดัชนีความเชื่อมั่นผู้บริโภคขึ้น',[[2.4,2.8,3.2],[64,65,66],[60,70,80],[45,52,60]],[1.2,0.3,-1,0.5,0.8,0.3]],
+    ['ได้ผลระยะสั้น แผ่วเมื่อจบโครงการ','likely',45,10,35,[50,40],'การบริโภคเพิ่มช่วงโครงการ แต่กลับสู่ระดับเดิมหลังจบ','ยอดใช้จ่ายลดลงหลังสิ้นสุดเฟส',[[1.9,2.2,2.5],[64.5,65.5,66.5],[50,58,65],[40,45,50]],[0,0,0,0,0,0]],
+    ['ตัวคูณต่ำ ภาระหนี้สาธารณะเพิ่ม','worst',20,-35,60,[80,55],'เงินถูกใช้แทนการบริโภคเดิม (substitution) ผลต่อ GDP ต่ำ แต่หนี้สาธารณะเพิ่ม','ยอดใช้จ่ายกระจุกในสินค้าจำเป็น\nหน่วยงานจัดอันดับเครดิตเตือน',[[1.5,1.8,2.1],[65.5,66.5,67.5],[45,50,55],[33,38,43]],[-0.5,-1.5,1,-0.8,-0.5,0]],
+    ['ระบบล่ม/ทุจริตอื้อฉาว','wild',5,-50,80,[60,90],'การสวมสิทธิ์หรือระบบขัดข้องกลายเป็นประเด็นการเมืองใหญ่','ข่าวจับกุมร้านค้าสวมสิทธิ์\nแอปล่มช่วงลงทะเบียน',[[1.6,1.9,2.2],[65,66,67],[40,48,55],[25,32,40]],[-0.5,0,2,0,0,-0.8]]]},
+   {name:'ไม่ดำเนินโครงการ',kind:'not',sc:[
+    ['รักษาวินัยการคลัง เศรษฐกิจฟื้นเอง','best',25,25,40,[15,40],'ส่งออกและท่องเที่ยวฟื้น เศรษฐกิจเติบโตโดยไม่ต้องใช้งบกระตุ้น','ตัวเลขส่งออกเป็นบวก\nนักท่องเที่ยวเพิ่ม',[[2.2,2.6,3.0],[63,64,65],[45,52,58],[35,40,45]],[0,-0.8,0,1.2,0.6,0.3]],
+    ['เศรษฐกิจโตต่ำต่อเนื่อง','likely',50,-15,55,[20,60],'การบริโภคซบเซา ร้านค้ารายย่อยรายได้ทรงตัวต่ำ','ยอดขายร้านค้ารายย่อยไม่เพิ่ม',[[1.4,1.8,2.1],[63.5,64.5,65.5],[35,42,48],[30,35,40]],[0,0,0,0,0,0]],
+    ['การบริโภคทรุด ร้านรายย่อยปิดกิจการ แรงกดดันการเมืองสูง','worst',25,-40,80,[25,85],'กำลังซื้อหดตัว ธุรกิจรายย่อยปิดกิจการ รัฐบาลถูกกดดันอย่างหนัก','จำนวนธุรกิจปิดกิจการเพิ่ม\nหนี้ครัวเรือนเสียเพิ่ม',[[0.8,1.2,1.6],[64,65,66],[25,32,40],[22,28,34]],[0,0,0,-1,-1.2,-0.8]]]}],
+  stake:[['รัฐบาล/พรรคแกนนำ',90,90,95],['กระทรวงการคลัง',75,80,90],['พรรคฝ่ายค้าน',35,45,70],['ธนาคารแห่งประเทศไทย',40,60,50],['ร้านค้ารายย่อย',90,30,90],['ประชาชนผู้มีรายได้น้อย',85,35,80],['นักเศรษฐศาสตร์/สภาพัฒน์',45,40,50],['ผู้ประกอบการรายใหญ่',55,55,40]]}),
+ ()=>build({title:'สหรัฐฯ ตัดสินใจบุกยึดอิหร่าน',category:'mil',actor:'ประธานาธิบดีสหรัฐฯ',decision:'ยกระดับจากสงครามทางอากาศ-ทะเลเป็นการบุกภาคพื้นเพื่อโค่นระบอบและยึดครอง',horizon:'24 เดือน',
+  desc:'แม่แบบสาธิตจากบริบทสงครามที่เริ่ม 28 ก.พ. 2026 · ค่าทั้งหมดเป็นสมมติฐาน',axes:{x:'ความสามารถต่อต้านของรัฐอิหร่าน',y:'ขอบเขตการขยายวง (ภูมิภาค/โลก)'},
+  metrics:[['ระยะเวลา','เดือน','low'],['ต้นทุนการคลังสหรัฐ','พันล้าน$','low'],['ราคาน้ำมันเบรนท์สูงสุด','$/บาร์เรล','low'],['ดัชนีความสูญเสียมนุษย์','0–100','low']],
+  drivers:[['ความเหนียวแน่นของระบอบ/IRGC','สูง = ต่อต้านได้มาก',60,10],['เครือข่ายพันธมิตรอิหร่าน','ฮิซบอลเลาะห์ ฮูตี ฯลฯ',55,10],['การหนุนหลังจากรัสเซีย/จีน','',35,10],['แรงสนับสนุนในประเทศสหรัฐ','',40,12],['ความแข็งแรงของแนวร่วม','',50,10],['ขนาดกำลังภาคพื้นที่ทุ่มเท','',30,10],['ความเสี่ยงวัสดุนิวเคลียร์','HEU สถานะไม่แน่ชัด',50,12]],
+  options:[{name:'บุกยึดภาคพื้น',kind:'do',sc:[
+    ['ชนะเร็ว เปลี่ยนผ่านราบรื่น','best',8,70,0,[15,15],'กองทัพแตกแถว ระบอบล่มเร็ว มีโครงสร้างเปลี่ยนผ่าน','นายทหารระดับสูงแปรพักตร์\nการลุกฮือในเมืองใหญ่',[[2,4,9],[150,300,600],[80,100,125],[10,20,35]],[-2,-1,-0.8,0.6,0.8,1.2,-0.5]],
+    ['ชนะทางทหาร ติดหล่มยึดครอง','likely',35,-30,70,[80,30],'ยึดเมืองหลักได้แต่เผชิญการก่อความไม่สงบยืดเยื้อหลายปี','การโจมตีขบวนลำเลียงเพิ่ม\nต้นทุนรายเดือนสูงขึ้น',[[24,60,120],[800,1800,3500],[90,115,150],[45,65,85]],[1,0.6,0.5,0.3,-0.2,-0.8,0]],
+    ['รัฐล่มสลาย แตกเป็นเสี่ยง','worst',22,-45,60,[25,60],'อำนาจกลางล่ม ภูมิภาคแยกตัว ผู้ลี้ภัยจำนวนมาก','สูญเสียการควบคุมจังหวัดชายแดน\nไม่ทราบที่ตั้ง HEU',[[12,48,120],[300,900,2000],[95,125,165],[55,75,95]],[-0.5,0.3,0.2,0,-0.4,-1,0.6]],
+    ['ชะงักงัน ถอนตัว','likely',15,-35,75,[70,45],'ต้นทุนการเมืองภายในสูง ถอนกำลังโดยไม่บรรลุเป้า','มติ War Powers ผ่านสภา',[[6,14,30],[200,500,1100],[90,112,140],[20,35,55]],[1.2,0.4,0.6,-1.5,-0.6,-0.6,0]],
+    ['สงครามภูมิภาคเต็มรูป','worst',15,-65,85,[70,80],'ปิดช่องแคบหลายจุด โจมตีโครงสร้างพลังงานอ่าว','โรงกลั่นในอ่าวถูกโจมตี',[[6,18,40],[500,1200,2500],[130,170,230],[55,75,92]],[0.8,1.8,0.6,0,-0.8,0,0.4]],
+    ['วิกฤตมหาอำนาจ/นิวเคลียร์','wild',5,-90,100,[45,95],'มหาอำนาจเข้าแทรก หรือวัสดุนิวเคลียร์หลุดมือ','ถอนตัว NPT\nเรือรบมหาอำนาจคุ้มกัน',[[3,12,36],[800,2500,6000],[150,200,300],[70,90,100]],[0.3,0.6,2,-0.2,-0.6,0.2,1.6]]]},
+   {name:'ไม่บุก (คงการกดดัน + เจรจา)',kind:'not',sc:[
+    ['บรรลุข้อตกลงผ่านคนกลาง','best',35,40,20,[50,15],'หยุดยิงถาวร จำกัดการเสริมสมรรถนะ เปิดช่องแคบ','ผู้ไกล่เกลี่ยยื่นร่างฉบับแก้ไขและได้รับคำตอบ',[[1,3,6],[20,50,120],[72,88,105],[3,8,15]],[0.3,-0.5,-0.3,-0.3,0.6,0,0.2]],
+    ['ชะงักงัน ช่องแคบไม่เสถียร','likely',45,-20,55,[60,45],'สงครามทางอากาศ-ทะเลต่อเนื่องในระดับต่ำ ราคาน้ำมันผันผวน','เหตุโจมตีเรือบรรทุกน้ำมันต่อเนื่อง',[[6,12,24],[60,150,300],[90,105,125],[15,25,40]],[0.6,0.6,0.3,0,0,0,0]],
+    ['ขยายวงในภูมิภาคอยู่ดี','worst',15,-55,75,[70,78],'เครือข่ายพันธมิตรยกระดับการโจมตีแม้ไม่มีการบุก','ฮูตีปิดทะเลแดง',[[6,14,30],[200,500,1000],[120,150,200],[35,55,75]],[0.5,1.8,0.5,0,-0.8,0,0.3]],
+    ['อิหร่านเร่งโครงการนิวเคลียร์','wild',5,-70,85,[85,85],'ถอนตัว NPT และเร่งพัฒนาอาวุธ','ประกาศถอนตัว NPT',[[6,18,36],[100,300,800],[110,140,190],[20,40,70]],[0.8,0,1,0,-0.5,0,1.8]]]}],
+  stake:[['ทำเนียบขาว',70,95,95],['สภาคองเกรส',35,70,75],['กระทรวงกลาโหม/CENTCOM',50,75,85],['อิสราเอล',80,60,90],['รัฐอ่าวอาหรับ',30,55,90],['ผู้ไกล่เกลี่ย (ปากีสถาน กาตาร์ โอมาน)',10,35,80],['สาธารณชนอเมริกัน',30,45,55]]}),
+];
+
+/* ============ STORAGE ============ */
+const KEY='policyScenarioLab.v1';
+let DB;
+function load(){try{const s=localStorage.getItem(KEY);if(s){DB=JSON.parse(s);if(DB.analyses&&DB.analyses.length)return;}}catch(e){}
+  DB={analyses:TEMPLATES.map(f=>f()),cur:null};DB.cur=DB.analyses[0].id;}
+let saveT;function save(){clearTimeout(saveT);saveT=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}},300);}
+const A=()=>DB.analyses.find(a=>a.id===DB.cur)||DB.analyses[0];
+
+/* ============ ENGINE ============ */
+const curX=a=>Object.fromEntries(a.drivers.map(d=>[d.id,+d.value]));
+function probs(a,opt,x){
+  if(!opt.scenarios.length)return [];
+  const z=opt.scenarios.map(s=>{let v=Math.log(Math.max(+s.weight||0,0.5));a.drivers.forEach(d=>{v+=(+s.beta[d.id]||0)*(x[d.id]-50)/50;});return v;});
+  const m=Math.max(...z),e=z.map(v=>Math.exp(v-m)),S=e.reduce((p,c)=>p+c,0);return e.map(v=>v/S);
+}
+const vPT=x=>x>=0?Math.pow(x,0.88):-2.25*Math.pow(-x,0.88);
+const wPT=p=>{const g=0.61;return p<=0?0:Math.pow(p,g)/Math.pow(Math.pow(p,g)+Math.pow(1-p,g),1/g);};
+function evalOpt(a,opt,x){
+  const p=probs(a,opt,x),S=opt.scenarios;
+  const sumT=t=>S.reduce((acc,s,i)=>acc+(s.type===t?p[i]:0),0);
+  const euR=S.reduce((acc,s,i)=>acc+p[i]*(+s.util),0);
+  const euP=S.reduce((acc,s,i)=>acc+wPT(p[i])*vPT(+s.util/100)*100,0);
+  const pol=S.reduce((acc,s,i)=>acc+p[i]*(+s.pol),0);
+  const m={};a.metrics.forEach(mt=>m[mt.id]=S.reduce((acc,s,i)=>acc+p[i]*triMean(s.m[mt.id]||[0,0,0]),0));
+  const ti=p.length?p.indexOf(Math.max(...p)):-1;
+  return {p,best:sumT('best'),likely:sumT('likely'),worst:sumT('worst'),wild:sumT('wild'),euR,euP,eu:a.settings.prospect?euP:euR,pol,m,top:ti};
+}
+function sqIndex(a){const i=a.options.findIndex(o=>o.kind==='not');return i<0?(a.options.length>1?1:0):i;}
+function focusIndex(a){let f=a.settings.focus|0;if(f>=a.options.length)f=0;return f;}
+function deltaPair(a){const sq=sqIndex(a);let f=focusIndex(a);if(f===sq)f=a.options.findIndex((o,i)=>i!==sq);return [f,sq];}
+function deltaEU(a,x){const [f,sq]=deltaPair(a);if(f<0)return 0;return evalOpt(a,a.options[f],x).eu-evalOpt(a,a.options[sq],x).eu;}
+
+/* ============ RENDER: HEADER/SIDEBAR ============ */
+function renderSelect(){
+  $('#selA').innerHTML=DB.analyses.map(a=>`<option value="${a.id}"${a.id===DB.cur?' selected':''}>${esc(a.title)} · ${esc(CATS[a.category]?.name||'')}</option>`).join('');
+}
+function renderSide(){
+  const a=A();
+  let h=`<div class="dtitle">${esc(a.title)}</div><span class="cat">${esc(CATS[a.category]?.name||'')}</span>${a.horizon?`<span class="cat">⏱ ${esc(a.horizon)}</span>`:''}
+  ${a.actor?`<div class="note" style="margin-top:6px">ผู้ตัดสินใจ: ${esc(a.actor)}</div>`:''}
+  <h2>ทางเลือกที่โฟกัส</h2><select data-p="settings.focus" data-num data-re="all">${a.options.map((o,i)=>`<option value="${i}"${i===focusIndex(a)?' selected':''}>${esc(o.name)} (${KINDS[o.kind]})</option>`).join('')}</select>
+  <h2 style="margin-top:12px">ตัวขับเคลื่อน (Key Drivers)</h2>
+  <div class="row"><button class="btn sm" id="dReset">รีเซ็ตเป็น 50</button></div>`;
+  if(!a.drivers.length)h+=`<div class="empty" style="margin-top:6px">ยังไม่มีตัวขับเคลื่อน — เพิ่มในแท็บ ①</div>`;
+  a.drivers.forEach((d,i)=>{h+=`<div class="drv"><label>${esc(d.name)}<span class="v" id="sv_${d.id}">${d.value}</span></label><input type="range" min="0" max="100" value="${d.value}" data-p="drivers.${i}.value" data-num data-live="sv_${d.id}">${d.hint?`<small>${esc(d.hint)}</small>`:''}</div>`;});
+  h+=`<label class="chk"><input type="checkbox" data-p="settings.prospect" data-bool ${a.settings.prospect?'checked':''}><span>ประเมินแบบ <b>Prospect Theory</b> (ผู้ตัดสินใจกลัวการสูญเสีย)</span></label>
+  <div class="drv"><label>เกณฑ์ความเสี่ยงการเมืองที่ยอมรับได้<span class="v" id="sv_thr">${a.settings.thr}</span></label><input type="range" min="10" max="95" value="${a.settings.thr}" data-p="settings.thr" data-num data-live="sv_thr"><small>ใช้ในการคัดกรองแบบ Poliheuristic</small></div>`;
+  $('#side').innerHTML=h;
+  $('#dReset').onclick=()=>{a.drivers.forEach(d=>d.value=50);save();renderSide();recalc();};
+}
+
+/* ============ RENDER: SETUP ============ */
+function renderSetup(){
+  const a=A();
+  const catOpts=Object.entries(CATS).map(([k,c])=>`<option value="${k}"${k===a.category?' selected':''}>${c.name}</option>`).join('');
+  let h=`<div class="card"><h3>ข้อมูลการวิเคราะห์</h3><p class="note">ตั้งชื่อและอธิบายการตัดสินใจที่ต้องการวิเคราะห์</p><div class="fgrid">
+   <div class="full"><span class="fl">ชื่อการวิเคราะห์นโยบาย</span><input type="text" data-p="title" data-re="head" value="${esc(a.title)}" placeholder="เช่น การขึ้นภาษีมูลค่าเพิ่มเป็น 10%"></div>
+   <div><span class="fl">ประเภทการวิเคราะห์</span><select data-p="category" data-re="head">${catOpts}</select></div>
+   <div><span class="fl">กรอบเวลาวิเคราะห์</span><input type="text" data-p="horizon" data-re="side" value="${esc(a.horizon)}" placeholder="เช่น 12 เดือน"></div>
+   <div><span class="fl">ผู้ตัดสินใจ / หน่วยงาน</span><input type="text" data-p="actor" data-re="side" value="${esc(a.actor)}"></div>
+   <div><span class="fl">ข้อความการตัดสินใจ (Decision statement)</span><input type="text" data-p="decision" value="${esc(a.decision)}"></div>
+   <div class="full"><span class="fl">บริบท / หมายเหตุ</span><textarea data-p="desc">${esc(a.desc)}</textarea></div>
+   <div><span class="fl">แกน X ของเมทริกซ์ 2×2</span><input type="text" data-p="axes.x" value="${esc(a.axes.x)}"></div>
+   <div><span class="fl">แกน Y ของเมทริกซ์ 2×2</span><input type="text" data-p="axes.y" value="${esc(a.axes.y)}"></div>
+  </div><div class="row" style="margin-top:10px"><button class="btn sm" id="applyCat">เพิ่มตัวขับเคลื่อน & ตัวชี้วัดแนะนำของประเภท "${esc(CATS[a.category]?.name)}"</button></div></div>`;
+  h+=`<div class="card"><h3>ทางเลือกการตัดสินใจ</h3><p class="note">ต้องมีอย่างน้อย "ทำ" และ "ไม่ทำ (สถานะเดิม)" · เพิ่มทางเลือกอื่นได้ เช่น ทำบางส่วน หรือทำแบบมีเงื่อนไข</p>
+   <div class="scroll-x"><table><tr><th>ชื่อทางเลือก</th><th style="width:190px">ชนิด</th><th style="width:90px">ฉากทัศน์</th><th style="width:60px"></th></tr>
+   ${a.options.map((o,i)=>`<tr><td><input type="text" data-p="options.${i}.name" data-re="side" value="${esc(o.name)}"></td><td><select data-p="options.${i}.kind" data-re="side">${Object.entries(KINDS).map(([k,v])=>`<option value="${k}"${k===o.kind?' selected':''}>${v}</option>`).join('')}</select></td><td class="num">${o.scenarios.length}</td><td>${a.options.length>2?`<button class="btn sm danger" data-delopt="${i}">ลบ</button>`:''}</td></tr>`).join('')}
+   </table></div><div class="row" style="margin-top:8px"><button class="btn sm" id="addOpt">+ เพิ่มทางเลือก</button></div></div>`;
+  h+=`<div class="card"><h3>ตัวชี้วัดผลกระทบ (Impact Metrics)</h3><p class="note">ผลลัพธ์ที่ต้องการวัดในแต่ละฉากทัศน์ · "ทิศทางที่ดี" ใช้ตัดสินว่าค่าสูงหรือต่ำดีกว่า</p>
+   <div class="scroll-x"><table><tr><th>ชื่อตัวชี้วัด</th><th style="width:150px">หน่วย</th><th style="width:150px">ทิศทางที่ดี</th><th style="width:60px"></th></tr>
+   ${a.metrics.map((m,i)=>`<tr><td><input type="text" data-p="metrics.${i}.name" value="${esc(m.name)}"></td><td><input type="text" data-p="metrics.${i}.unit" value="${esc(m.unit)}"></td><td><select data-p="metrics.${i}.better"><option value="high"${m.better==='high'?' selected':''}>ยิ่งสูงยิ่งดี</option><option value="low"${m.better==='low'?' selected':''}>ยิ่งต่ำยิ่งดี</option></select></td><td><button class="btn sm danger" data-delm="${i}">ลบ</button></td></tr>`).join('')}
+   </table></div><div class="row" style="margin-top:8px"><button class="btn sm" id="addM">+ เพิ่มตัวชี้วัด</button></div></div>`;
+  h+=`<div class="card"><h3>ตัวขับเคลื่อน (Key Drivers / ความไม่แน่นอนหลัก)</h3><p class="note">ปัจจัยภายนอกที่กำหนดว่าฉากทัศน์ใดจะเกิด · ค่า 0–100 · σ = ความไม่แน่นอนของการประเมินค่านั้น (ใช้ใน Monte Carlo)</p>
+   <div class="scroll-x"><table><tr><th>ชื่อตัวขับเคลื่อน</th><th>คำอธิบาย</th><th style="width:80px">ค่า</th><th style="width:70px">σ</th><th style="width:60px"></th></tr>
+   ${a.drivers.map((d,i)=>`<tr><td><input type="text" data-p="drivers.${i}.name" data-re="side" value="${esc(d.name)}"></td><td><input type="text" data-p="drivers.${i}.hint" data-re="side" value="${esc(d.hint)}"></td><td><input type="number" min="0" max="100" data-p="drivers.${i}.value" data-num data-re="side" value="${d.value}"></td><td><input type="number" min="0" max="40" data-p="drivers.${i}.sigma" data-num value="${d.sigma}"></td><td><button class="btn sm danger" data-deld="${i}">ลบ</button></td></tr>`).join('')}
+   </table></div><div class="row" style="margin-top:8px"><button class="btn sm" id="addD">+ เพิ่มตัวขับเคลื่อน</button></div></div>`;
+  $('#tab-setup').innerHTML=h;
+  $('#addOpt').onclick=()=>{a.options.push({id:uid(),name:'ทางเลือกใหม่',kind:'alt',scenarios:[]});commit('full');};
+  $$('[data-delopt]').forEach(b=>b.onclick=()=>{if(confirm('ลบทางเลือกนี้และฉากทัศน์ทั้งหมดในทางเลือกนี้?')){a.options.splice(+b.dataset.delopt,1);a.settings.focus=0;a.settings.scTab=0;commit('full');}});
+  $('#addM').onclick=()=>{const m={id:uid(),name:'ตัวชี้วัดใหม่',unit:'',better:'high'};a.metrics.push(m);eachSc(a,s=>s.m[m.id]=[0,0,0]);commit('full');};
+  $$('[data-delm]').forEach(b=>b.onclick=()=>{const m=a.metrics.splice(+b.dataset.delm,1)[0];eachSc(a,s=>delete s.m[m.id]);commit('full');});
+  $('#addD').onclick=()=>{const d={id:uid(),name:'ตัวขับเคลื่อนใหม่',hint:'',value:50,sigma:10};a.drivers.push(d);eachSc(a,s=>s.beta[d.id]=0);commit('full');};
+  $$('[data-deld]').forEach(b=>b.onclick=()=>{const d=a.drivers.splice(+b.dataset.deld,1)[0];eachSc(a,s=>delete s.beta[d.id]);commit('full');});
+  $('#applyCat').onclick=()=>{const C=CATS[a.category];
+    C.drivers.forEach(d=>{if(!a.drivers.some(x=>x.name===d[0])){const nd={id:uid(),name:d[0],hint:d[1],value:50,sigma:10};a.drivers.push(nd);eachSc(a,s=>s.beta[nd.id]=0);}});
+    C.metrics.forEach(m=>{if(!a.metrics.some(x=>x.name===m[0])){const nm={id:uid(),name:m[0],unit:m[1],better:m[2]};a.metrics.push(nm);eachSc(a,s=>s.m[nm.id]=[0,0,0]);}});commit('full');};
+}
+const eachSc=(a,f)=>a.options.forEach(o=>o.scenarios.forEach(f));
+
+/* ============ RENDER: SCENARIO BUILDER ============ */
+function renderSc(){
+  const a=A();let t=a.settings.scTab|0;if(t>=a.options.length)t=0;const o=a.options[t],oi=t;
+  const betaOpts=v=>[-2,-1.5,-1,-0.5,0,0.5,1,1.5,2].map(n=>`<option value="${n}"${+v===n?' selected':''}>${n>0?'+':''}${n}</option>`).join('');
+  let h=`<div class="card"><h3>สร้างฉากทัศน์แยกตามทางเลือก</h3><p class="note">เลือกทางเลือกด้านล่าง แล้วกำหนดว่า "ถ้าเลือกทางนี้ จะเกิดฉากทัศน์อะไรได้บ้าง" · ความน่าจะเป็นจริงคำนวณจากความเป็นไปได้ตั้งต้น × อิทธิพลของตัวขับเคลื่อน</p>
+  <div class="otabs">${a.options.map((x,i)=>`<button data-sct="${i}" class="${i===t?'active':''}">${x.kind==='do'?'✔ ถ้าทำ: ':x.kind==='not'?'✕ ถ้าไม่ทำ: ':'◆ '}${esc(x.name)} (${x.scenarios.length})</button>`).join('')}</div>
+  <div class="row"><button class="btn sm primary" id="addSc">+ เพิ่มฉากทัศน์</button><span class="note" style="margin:0">ตัวช่วย: </span>
+  ${['best','likely','worst','wild'].map(k=>`<button class="btn sm" data-addtype="${k}">+ ${TYPES[k]}</button>`).join('')}</div></div>`;
+  if(!o.scenarios.length)h+=`<div class="empty">ทางเลือกนี้ยังไม่มีฉากทัศน์ — กด "+ เพิ่มฉากทัศน์"</div>`;
+  o.scenarios.forEach((s,si)=>{const P=`options.${oi}.scenarios.${si}`;
+    h+=`<div class="card sc-card ${s.type}" id="card_${s.id}">
+    <div class="sc-head"><b>${si+1}.</b><input type="text" data-p="${P}.name" value="${esc(s.name)}" style="flex:1;min-width:200px;font-weight:600">
+      <select data-p="${P}.type" data-re="sccls" data-sid="${s.id}" style="width:auto">${Object.entries(TYPES).map(([k,v])=>`<option value="${k}"${k===s.type?' selected':''}>${v}</option>`).join('')}</select>
+      <span class="p" id="pp_${s.id}">p = –</span>
+      <button class="btn sm" data-dupsc="${si}">สำเนา</button><button class="btn sm danger" data-delsc="${si}">ลบ</button></div>
+    <div class="fgrid">
+      <div><span class="fl">ความเป็นไปได้ตั้งต้น (น้ำหนัก 1–100)</span><input type="number" min="0" max="100" data-p="${P}.weight" data-num value="${s.weight}"></div>
+      <div><span class="fl">อรรถประโยชน์ต่อผู้ตัดสินใจ (−100 ถึง +100)</span><input type="number" min="-100" max="100" data-p="${P}.util" data-num value="${s.util}"></div>
+      <div><span class="fl">ความเสี่ยงทางการเมือง/สถาบัน (0–100)</span><input type="number" min="0" max="100" data-p="${P}.pol" data-num value="${s.pol}"></div>
+      <div class="row" style="gap:10px"><div style="flex:1"><span class="fl">ตำแหน่งแกน X (0–100)</span><input type="number" min="0" max="100" data-p="${P}.pos.0" data-num value="${s.pos[0]}"></div><div style="flex:1"><span class="fl">แกน Y (0–100)</span><input type="number" min="0" max="100" data-p="${P}.pos.1" data-num value="${s.pos[1]}"></div></div>
+      <div class="full"><span class="fl">คำบรรยายฉากทัศน์</span><textarea data-p="${P}.desc">${esc(s.desc)}</textarea></div>
+      <div class="full"><span class="fl">ตัวบ่งชี้เตือนล่วงหน้า (Signposts) — บรรทัดละ 1 ข้อ</span><textarea data-p="${P}.signs">${esc(s.signs)}</textarea></div>
+    </div>
+    <details open><summary>ผลกระทบต่อตัวชี้วัด (ต่ำสุด – ค่าที่น่าจะเป็น – สูงสุด)</summary>
+    ${a.metrics.length?`<div class="scroll-x"><table class="tri"><tr><th>ตัวชี้วัด</th><th>ต่ำสุด</th><th>น่าจะเป็น</th><th>สูงสุด</th></tr>${a.metrics.map(m=>{const v=s.m[m.id]||(s.m[m.id]=[0,0,0]);return `<tr><td>${esc(m.name)} <span class="note">(${esc(m.unit)})</span></td>${[0,1,2].map(k=>`<td><input type="number" step="any" data-p="${P}.m.${m.id}.${k}" data-num value="${v[k]}"></td>`).join('')}</tr>`;}).join('')}</table></div>`:'<div class="empty">ยังไม่มีตัวชี้วัด</div>'}</details>
+    <details><summary>อิทธิพลของตัวขับเคลื่อนต่อโอกาสเกิดฉากทัศน์นี้ (β: −2 ลดโอกาสมาก … +2 เพิ่มโอกาสมาก)</summary>
+    <div class="beta">${a.drivers.map(d=>`<label>${esc(d.name)}<select data-p="${P}.beta.${d.id}" data-num>${betaOpts(s.beta[d.id]||0)}</select></label>`).join('')||'<div class="empty">ยังไม่มีตัวขับเคลื่อน</div>'}</div></details>
+    </div>`;});
+  $('#tab-sc').innerHTML=h;
+  $$('[data-sct]').forEach(b=>b.onclick=()=>{a.settings.scTab=+b.dataset.sct;save();renderSc();updateScP();});
+  const newSc=(type)=>{const presets={best:['ฉากทัศน์ดีที่สุด',20,50,15],likely:['ฉากทัศน์ที่น่าจะเป็น',45,0,40],worst:['ฉากทัศน์เลวร้ายที่สุด',20,-50,75],wild:['เหตุการณ์ไม่คาดฝัน (Wildcard)',5,-60,85]}[type];
+    const s={id:uid(),name:presets[0],type,weight:presets[1],util:presets[2],pol:presets[3],pos:[50,50],desc:'',signs:'',m:{},beta:{}};
+    a.metrics.forEach(m=>s.m[m.id]=[0,0,0]);a.drivers.forEach(d=>s.beta[d.id]=0);o.scenarios.push(s);commit('full');};
+  $('#addSc').onclick=()=>newSc('likely');
+  $$('[data-addtype]').forEach(b=>b.onclick=()=>newSc(b.dataset.addtype));
+  $$('[data-delsc]').forEach(b=>b.onclick=()=>{o.scenarios.splice(+b.dataset.delsc,1);commit('full');});
+  $$('[data-dupsc]').forEach(b=>b.onclick=()=>{const c=JSON.parse(JSON.stringify(o.scenarios[+b.dataset.dupsc]));c.id=uid();c.name+=' (สำเนา)';o.scenarios.splice(+b.dataset.dupsc+1,0,c);commit('full');});
+}
+function updateScP(){const a=A(),x=curX(a);a.options.forEach(o=>{const p=probs(a,o,x);o.scenarios.forEach((s,i)=>{const el=document.getElementById('pp_'+s.id);if(el)el.textContent='p = '+pct(p[i]);});});}
+
+/* ============ RENDER: STAKEHOLDERS ============ */
+function renderStake(){
+  const a=A();
+  let h=`<div class="grid g2"><div class="card"><h3>ผู้มีส่วนได้เสีย (Stakeholders)</h3><p class="note">ตำแหน่ง: 0 = คัดค้านการดำเนินนโยบายเต็มที่ · 100 = สนับสนุนเต็มที่ · อำนาจ = ความสามารถส่งผลต่อการตัดสินใจ · ความสำคัญ = ระดับที่ประเด็นนี้สำคัญต่อเขา</p>
+  <div class="scroll-x"><table><tr><th>ผู้มีส่วนได้เสีย</th><th style="width:78px">ตำแหน่ง</th><th style="width:78px">อำนาจ</th><th style="width:78px">ความสำคัญ</th><th style="width:50px"></th></tr>
+  ${a.stakeholders.map((s,i)=>`<tr><td><input type="text" data-p="stakeholders.${i}.name" value="${esc(s.name)}"></td>${['position','power','salience'].map(k=>`<td><input type="number" min="0" max="100" data-p="stakeholders.${i}.${k}" data-num value="${s[k]}"></td>`).join('')}<td><button class="btn sm danger" data-delst="${i}">ลบ</button></td></tr>`).join('')}
+  </table></div><div class="row" style="margin-top:8px"><button class="btn sm" id="addSt">+ เพิ่มผู้มีส่วนได้เสีย</button></div></div>
+  <div class="card"><h3>ความเป็นไปได้ทางการเมือง (Political Feasibility)</h3><p class="note">แบบจำลองถ่วงน้ำหนักตำแหน่ง (Bueno de Mesquita) และ Median Voter (Black)</p><div class="grid g2" id="stK"></div><div class="narr" id="stTxt" style="margin-top:10px"></div></div></div>
+  <div class="grid g2" style="margin-top:14px"><div class="card"><h3>Power–Interest Grid (Mendelow)</h3><p class="note">สี: แดง = คัดค้าน · เหลือง = กลาง · เขียว = สนับสนุน · ขนาด = น้ำหนักอิทธิพล</p><div id="stGrid"></div></div>
+  <div class="card"><h3>ดุลแรงสนับสนุน–คัดค้าน</h3><p class="note">น้ำหนัก = อำนาจ × ความสำคัญ</p><div class="chart-box tall"><canvas id="cSt"></canvas></div></div></div>`;
+  $('#tab-stake').innerHTML=h;
+  $('#addSt').onclick=()=>{a.stakeholders.push({id:uid(),name:'ผู้มีส่วนได้เสียใหม่',position:50,power:50,salience:50});commit('full');};
+  $$('[data-delst]').forEach(b=>b.onclick=()=>{a.stakeholders.splice(+b.dataset.delst,1);commit('full');});
+}
+function stakeCalc(a){
+  const S=a.stakeholders.map(s=>({...s,w:(+s.power)*(+s.salience)/100}));const W=S.reduce((p,s)=>p+s.w,0)||1;
+  const mean=S.reduce((p,s)=>p+s.position*s.w,0)/W;
+  const sorted=[...S].sort((x,y)=>x.position-y.position);let c=0,med=50;for(const s of sorted){c+=s.w;if(c>=W/2){med=+s.position;break;}}
+  const sup=S.filter(s=>s.position>55).reduce((p,s)=>p+s.w,0)/W,opp=S.filter(s=>s.position<45).reduce((p,s)=>p+s.w,0)/W;
+  return {S,mean,med,sup,opp,neu:1-sup-opp};
+}
+function drawStake(){
+  const a=A();if(!$('#stK'))return;const r=stakeCalc(a);
+  $('#stK').innerHTML=[['ตำแหน่งถ่วงน้ำหนัก',r.mean.toFixed(1)],['ตำแหน่งมัธยฐานถ่วงน้ำหนัก',r.med.toFixed(0)],['น้ำหนักฝ่ายสนับสนุน',pct(r.sup)],['น้ำหนักฝ่ายคัดค้าน',pct(r.opp)]].map(k=>`<div class="kpi"><div class="lbl">${k[0]}</div><div class="val" style="font-size:19px">${k[1]}</div></div>`).join('');
+  const lvl=r.mean>=60?'<span class="pass">มีแรงสนับสนุนเพียงพอ</span>':r.mean>=45?'<span style="color:var(--warn);font-weight:600">ก้ำกึ่ง ต้องสร้างแนวร่วมเพิ่ม</span>':'<span class="fail">แรงต้านสูง มีความเสี่ยงที่นโยบายจะไม่ผ่านหรือถูกถ่วง</span>';
+  const key=[...r.S].sort((x,y)=>y.w-x.w).slice(0,3).map(s=>`${esc(s.name)} (${s.position})`).join(', ');
+  $('#stTxt').innerHTML=`ผลคาดการณ์ทางการเมือง: ${lvl}. ผู้เล่นที่มีน้ำหนักสูงสุด: ${key||'–'}. ${r.med<50&&r.mean>=50?'มัธยฐานต่ำกว่าค่าเฉลี่ย แสดงว่าแรงสนับสนุนกระจุกในผู้เล่นไม่กี่ราย':''}`;
+  const W=520,H=420,pad=46,sx=v=>pad+v/100*(W-pad-16),sy=v=>H-pad-v/100*(H-pad-16);
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%">`;
+  const qd=[[pad,16,'Keep satisfied'],[sx(50),16,'Manage closely'],[pad,sy(50),'Monitor'],[sx(50),sy(50),'Keep informed']];
+  qd.forEach((q,i)=>{s+=`<rect x="${q[0]}" y="${q[1]}" width="${sx(50)-pad}" height="${sy(50)-16}" fill="${css('--panel2')}" fill-opacity="${i===1?0.95:0.5}" stroke="${css('--border')}"/><text x="${q[0]+8}" y="${q[1]+16}" font-size="11.5" fill="${css('--muted')}" font-weight="600">${q[2]}</text>`;});
+  s+=`<text x="${(W+pad)/2}" y="${H-10}" text-anchor="middle" font-size="12" fill="${css('--muted')}">ความสำคัญของประเด็น (Interest) →</text><text transform="translate(16,${(H-pad)/2}) rotate(-90)" text-anchor="middle" font-size="12" fill="${css('--muted')}">อำนาจ (Power) →</text>`;
+  const col=p=>p<45?css('--bad'):p>55?css('--good'):css('--warn');
+  r.S.forEach(st=>{const rr=5+Math.sqrt(st.w)*1.8;s+=`<circle cx="${sx(st.salience)}" cy="${sy(st.power)}" r="${rr}" fill="${col(st.position)}" fill-opacity=".7" stroke="${css('--panel')}"><title>${esc(st.name)} · ตำแหน่ง ${st.position}</title></circle><text x="${sx(st.salience)}" y="${sy(st.power)-rr-4}" text-anchor="middle" font-size="10.5" fill="${css('--text')}">${esc(st.name.length>22?st.name.slice(0,21)+'…':st.name)}</text>`;});
+  $('#stGrid').innerHTML=s+'</svg>';
+  const ord=[...r.S].sort((x,y)=>x.position-y.position);
+  mk('cSt',{type:'bar',data:{labels:ord.map(s=>s.name),datasets:[{label:'ตำแหน่ง (0 คัดค้าน – 100 สนับสนุน)',data:ord.map(s=>s.position-50),backgroundColor:ord.map(s=>col(s.position)),borderRadius:3}]},
+   options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`ตำแหน่ง ${ord[c.dataIndex].position} · น้ำหนัก ${ord[c.dataIndex].w.toFixed(0)}`}}},scales:{x:{min:-50,max:50,ticks:{callback:v=>v+50},title:{display:true,text:'← คัดค้าน      ตำแหน่ง      สนับสนุน →'}},y:{ticks:{color:css('--text')}}}}});
+}
+
+/* ============ CHARTS ============ */
+let charts={};
+function mk(id,cfg){const el=document.getElementById(id);if(!el||!window.Chart)return;if(charts[id])charts[id].destroy();charts[id]=new Chart(el,cfg);}
+function chartDefaults(){if(!window.Chart)return;Chart.defaults.font.family='"IBM Plex Sans Thai",sans-serif';Chart.defaults.color=css('--muted');Chart.defaults.borderColor=css('--grid');Chart.defaults.animation=false;}
+
+/* ============ DASHBOARD ============ */
+function renderDash(){
+  const a=A(),x=curX(a);const R=a.options.map(o=>evalOpt(a,o,x));const [fi,sq]=deltaPair(a);const F=focusIndex(a);
+  const r=R[F],o=a.options[F];const d=fi>=0?R[fi].eu-R[sq].eu:0;
+  $('#kpis').innerHTML=[
+    ['ฉากทัศน์ที่มีโอกาสสูงสุด ('+esc(o.name)+')',r.top>=0?esc(o.scenarios[r.top].name):'–',r.top>=0?'p = '+pct(r.p[r.top]):'',''],
+    ['P(Best) / P(Worst)',`<span style="color:var(--good)">${pct(r.best)}</span> / <span style="color:var(--bad)">${pct(r.worst)}</span>`,'Wildcard: '+pct(r.wild),''],
+    [(a.settings.prospect?'มูลค่าคาดหมาย Prospect':'อรรถประโยชน์คาดหมาย')+' ของทางเลือกที่โฟกัส',r.eu.toFixed(1),'สเกล −100 ถึง +100',r.eu>=0?'--good':'--bad'],
+    ['ประโยชน์สุทธิของการตัดสินใจ (ΔEU)',(d>=0?'+':'')+d.toFixed(1),fi>=0?`${esc(a.options[fi].name)} − ${esc(a.options[sq].name)}`:'',d>=0?'--good':'--bad']
+  ].map(k=>`<div class="card kpi"><div class="lbl">${k[0]}</div><div class="val" style="${k[1].length>18?'font-size:16px;font-family:inherit':''}${k[3]?';color:'+css(k[3]):''}">${k[1]}</div><div class="foot">${k[2]}</div></div>`).join('');
+  // narrative
+  const sens=tornadoData('delta').slice(0,3);const be=breakEven();
+  const passed=a.options.map((oo,i)=>({oo,r:R[i]})).filter(z=>z.r.pol<=a.settings.thr).sort((p,q)=>q.r.eu-p.r.eu);
+  const st=stakeCalc(a);
+  let n=`<p><b>${esc(a.title)}</b>${a.actor?' — ผู้ตัดสินใจ: '+esc(a.actor):''}${a.horizon?' · กรอบเวลา '+esc(a.horizon):''}</p>`;
+  a.options.forEach((oo,i)=>{const rr=R[i];if(rr.top<0)return;n+=`<p>${oo.kind==='do'?'✔ <b>ถ้าตัดสินใจทำ</b>':oo.kind==='not'?'✕ <b>ถ้าไม่ทำ</b>':'◆ <b>ทางเลือก</b>'} (${esc(oo.name)}): ฉากทัศน์ที่น่าจะเกิดที่สุดคือ "<b>${esc(oo.scenarios[rr.top].name)}</b>" (${pct(rr.p[rr.top])}) · P(Best) ${pct(rr.best)} · P(Worst) ${pct(rr.worst)} · EU ${rr.eu.toFixed(1)}</p>`;});
+  if(fi>=0)n+=`<p>${d>=0?`การเลือก "<b>${esc(a.options[fi].name)}</b>" ให้อรรถประโยชน์สูงกว่า "${esc(a.options[sq].name)}" อยู่ <b style="color:var(--good)">${d.toFixed(1)}</b> หน่วย`:`การไม่ดำเนินการ ("<b>${esc(a.options[sq].name)}</b>") ให้อรรถประโยชน์สูงกว่าอยู่ <b style="color:var(--bad)">${(-d).toFixed(1)}</b> หน่วย`} ภายใต้สมมติฐานปัจจุบัน.</p>`;
+  if(sens.length)n+=`<p>ปัจจัยที่กำหนดผลการตัดสินใจมากที่สุด: ${sens.map(s=>'<b>'+esc(s.name)+'</b>').join(', ')}.${be.filter(b=>b.pts.length).length?' จุดพลิก: '+be.filter(b=>b.pts.length).slice(0,3).map(b=>`${esc(b.name)} ≈ ${b.pts.join(', ')} (ปัจจุบัน ${b.cur})`).join(' · '):' ไม่มีตัวขับเคลื่อนตัวใดที่เปลี่ยนคำแนะนำได้เพียงลำพัง (ผลลัพธ์ค่อนข้างแข็งแรง).'}</p>`;
+  n+=`<p>Poliheuristic (เกณฑ์ ${a.settings.thr}): ${passed.length?`ทางเลือกที่ผ่านและดีที่สุดคือ <b>${esc(passed[0].oo.name)}</b>`:'<span class="fail">ทุกทางเลือกเกินเกณฑ์ความเสี่ยงทางการเมือง</span>'} · ความเป็นไปได้ทางการเมืองจากผู้มีส่วนได้เสีย: ตำแหน่งถ่วงน้ำหนัก ${st.mean.toFixed(0)}/100.</p>`;
+  $('#narr').innerHTML=n;
+  // prob charts per option
+  const pw=$('#probWrap');if(pw.dataset.n!==String(a.options.length)+a.id){pw.dataset.n=String(a.options.length)+a.id;pw.innerHTML=a.options.map((oo,i)=>`<div class="card"><h3 id="pt_${i}"></h3><p class="note">ความน่าจะเป็นของแต่ละฉากทัศน์ (Multinomial Logit)</p><div class="chart-box short"><canvas id="cp_${i}"></canvas></div></div>`).join('');}
+  a.options.forEach((oo,i)=>{$('#pt_'+i).innerHTML=`<span class="sw" style="background:${optColor(i)}"></span>${oo.kind==='do'?'ถ้าทำ':oo.kind==='not'?'ถ้าไม่ทำ':'ทางเลือก'}: ${esc(oo.name)}`;
+    mk('cp_'+i,{type:'bar',data:{labels:oo.scenarios.map(s=>s.name.length>34?s.name.slice(0,33)+'…':s.name),datasets:[{data:R[i].p.map(v=>+(v*100).toFixed(2)),backgroundColor:oo.scenarios.map(s=>typeColor(s.type)),borderRadius:4}]},
+     options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{title:c=>oo.scenarios[c[0].dataIndex].name+' · '+TYPES[oo.scenarios[c[0].dataIndex].type],label:c=>c.raw.toFixed(1)+'%'}}},scales:{x:{min:0,max:100,title:{display:true,text:'%'}},y:{ticks:{color:css('--text'),font:{size:11.5}}}}}});});
+  drawMatrix(a,R);drawTree(a,R);
+  mk('cEU',{type:'bar',data:{labels:a.options.map(oo=>oo.name),datasets:[{label:'Rational EU',data:R.map(r=>+r.euR.toFixed(1)),backgroundColor:css('--accent2'),borderRadius:4},{label:'Prospect Theory',data:R.map(r=>+r.euP.toFixed(1)),backgroundColor:css('--accent'),borderRadius:4}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{title:{display:true,text:'อรรถประโยชน์'}},x:{ticks:{color:css('--text')}}}}});
+  // metrics table
+  let mt='<tr><th>ตัวชี้วัด</th>'+a.options.map((oo,i)=>`<th><span class="sw" style="background:${optColor(i)}"></span>${esc(oo.name)}</th>`).join('')+'</tr>';
+  a.metrics.forEach(m=>{const vals=R.map(r=>r.m[m.id]);const best=m.better==='high'?Math.max(...vals):Math.min(...vals);mt+=`<tr><td>${esc(m.name)} <span class="note">(${esc(m.unit)}, ${m.better==='high'?'↑ดี':'↓ดี'})</span></td>${vals.map(v=>`<td class="num">${fmt(v)}${v===best&&a.options.length>1?' ★':''}</td>`).join('')}</tr>`;});
+  [['P(Best)','best','high'],['P(Worst)','worst','low'],['ความเสี่ยงการเมือง','pol','low'],['อรรถประโยชน์คาดหมาย','eu','high']].forEach(([n,k,b])=>{const vals=R.map(r=>k==='best'||k==='worst'?r[k]*100:r[k]);const best=b==='high'?Math.max(...vals):Math.min(...vals);mt+=`<tr><td><b>${n}</b></td>${vals.map(v=>`<td class="num">${fmt(v)}${k==='best'||k==='worst'?'%':''}${v===best&&a.options.length>1?' ★':''}</td>`).join('')}</tr>`;});
+  $('#mTable').innerHTML=mt;
+  // radar
+  const rng={};a.metrics.forEach(m=>{const all=[];eachSc(a,s=>(s.m[m.id]||[]).forEach(v=>all.push(+v)));rng[m.id]=[Math.min(...all),Math.max(...all)];});
+  const norm=(m,v)=>{const [lo,hi]=rng[m.id];const t=hi===lo?0.5:(v-lo)/(hi-lo);return (m.better==='high'?1-t:t)*100;};
+  mk('cRadar',{type:'radar',data:{labels:[...a.metrics.map(m=>m.name),'P(Worst)','ความเสี่ยงการเมือง','ความสูญเสียอรรถประโยชน์'],datasets:a.options.map((oo,i)=>({label:oo.name,data:[...a.metrics.map(m=>norm(m,R[i].m[m.id])),R[i].worst*100,R[i].pol,(100-R[i].euR)/2],borderColor:optColor(i),backgroundColor:optColor(i)+'22',borderWidth:i===F?3:1.5,pointRadius:2}))},
+    options:{responsive:true,maintainAspectRatio:false,scales:{r:{min:0,max:100,ticks:{display:false},grid:{color:css('--grid')},angleLines:{color:css('--grid')},pointLabels:{color:css('--text'),font:{size:11}}}}}});
+  // poly
+  let ph='<tr><th>ทางเลือก</th><th>ความเสี่ยงการเมือง/สถาบัน</th><th>ขั้น 1</th><th>ขั้น 2: EU</th><th>อันดับ</th></tr>';
+  a.options.forEach((oo,i)=>{const ok=R[i].pol<=a.settings.thr;ph+=`<tr><td><b>${esc(oo.name)}</b> <span class="note">${KINDS[oo.kind]}</span></td><td class="num">${R[i].pol.toFixed(1)}<div class="pbar"><i style="width:${R[i].pol}%;background:${ok?css('--good'):css('--bad')}"></i></div></td><td class="${ok?'pass':'fail'}">${ok?'✓ ผ่าน':'✕ ตัดทิ้ง'}</td><td class="num">${R[i].eu.toFixed(1)}</td><td class="num">${ok?passed.findIndex(z=>z.oo===oo)+1:'–'}</td></tr>`;});
+  $('#polyTable').innerHTML=ph;
+}
+function drawMatrix(a,R){
+  const W=520,H=440,pad=50,sx=v=>pad+v/100*(W-pad-20),sy=v=>H-pad-v/100*(H-pad-20);
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%">`;const qx=sx(50),qy=sy(50);
+  [[pad,20],[qx,20],[pad,qy],[qx,qy]].forEach((q,i)=>{s+=`<rect x="${q[0]}" y="${q[1]}" width="${qx-pad}" height="${qy-20}" fill="${i===1?css('--bad'):i===2?css('--good'):css('--panel2')}" fill-opacity="${i===1||i===2?0.07:0.55}" stroke="${css('--border')}"/>`;});
+  s+=`<text x="${(W+pad)/2}" y="${H-12}" text-anchor="middle" font-size="12" fill="${css('--muted')}">${esc(a.axes.x)} →</text><text transform="translate(16,${(H-pad)/2+10}) rotate(-90)" text-anchor="middle" font-size="12" fill="${css('--muted')}">${esc(a.axes.y)} →</text>`;
+  a.options.forEach((o,i)=>o.scenarios.forEach((sc,k)=>{const p=R[i].p[k],rr=6+34*Math.sqrt(p),X=sx(+sc.pos[0]),Y=sy(+sc.pos[1]),c=typeColor(sc.type);
+    const shape=o.kind==='do'?`<circle cx="${X}" cy="${Y}" r="${rr}"`:o.kind==='not'?`<rect x="${X-rr*.88}" y="${Y-rr*.88}" width="${rr*1.76}" height="${rr*1.76}" rx="3"`:`<rect x="${X-rr*.8}" y="${Y-rr*.8}" width="${rr*1.6}" height="${rr*1.6}" transform="rotate(45 ${X} ${Y})"`;
+    s+=`${shape} fill="${c}" fill-opacity=".55" stroke="${optColor(i)}" stroke-width="2"><title>${esc(o.name)} → ${esc(sc.name)}: ${pct(p)}</title>${o.kind==='do'?'</circle>':'</rect>'}`;
+    s+=`<text x="${X}" y="${Y+rr+12}" text-anchor="middle" font-size="10" fill="${css('--text')}" paint-order="stroke" stroke="${css('--panel')}" stroke-width="3">${esc(sc.name.length>16?sc.name.slice(0,15)+'…':sc.name)} ${pct(p)}</text>`;}));
+  $('#matrix').innerHTML=s+'</svg>';
+}
+function drawTree(a,R){
+  const n=a.options.reduce((p,o)=>p+Math.max(o.scenarios.length,1),0);const rowH=38,H=Math.max(200,n*rowH+30),W=920,dx=40,ox=300,lx=560;
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%">`;let y=20;const dy=H/2;
+  s+=`<rect x="${dx-14}" y="${dy-14}" width="28" height="28" fill="${css('--accent2')}"/><text x="${dx}" y="${dy+32}" text-anchor="middle" font-size="11" fill="${css('--muted')}">ตัดสินใจ</text>`;
+  a.options.forEach((o,i)=>{const cnt=Math.max(o.scenarios.length,1),top=y,oy=top+cnt*rowH/2-rowH/2+rowH/2;
+    s+=`<path d="M${dx+14},${dy} C${dx+120},${dy} ${ox-120},${oy} ${ox-14},${oy}" fill="none" stroke="${optColor(i)}" stroke-width="2.5"/>`;
+    s+=`<circle cx="${ox}" cy="${oy}" r="13" fill="${optColor(i)}"/><text x="${ox-20}" y="${oy-16}" text-anchor="end" font-size="12.5" font-weight="600" fill="${css('--text')}">${esc(o.name.length>30?o.name.slice(0,29)+'…':o.name)}</text><text x="${ox-20}" y="${oy-2}" text-anchor="end" font-size="11" fill="${css('--muted')}" class="mono">EU ${R[i].eu.toFixed(1)}${R[i].pol>a.settings.thr?' · ตกเกณฑ์การเมือง':''}</text>`;
+    o.scenarios.forEach((sc,k)=>{const ly=top+k*rowH+rowH/2,p=R[i].p[k];
+      s+=`<path d="M${ox+13},${oy} C${ox+120},${oy} ${lx-120},${ly} ${lx-8},${ly}" fill="none" stroke="${typeColor(sc.type)}" stroke-width="${1+p*12}" stroke-opacity=".8"/>`;
+      s+=`<polygon points="${lx-8},${ly-5} ${lx+3},${ly} ${lx-8},${ly+5}" fill="${typeColor(sc.type)}"/><text x="${lx+8}" y="${ly-3}" font-size="12" font-weight="600" fill="${css('--text')}">${esc(sc.name.length>40?sc.name.slice(0,39)+'…':sc.name)}</text><text x="${lx+8}" y="${ly+11}" font-size="10.5" fill="${css('--muted')}" class="mono">p=${p.toFixed(3)} · U=${sc.util} · p·U=${(p*sc.util).toFixed(1)}</text>`;});
+    y+=cnt*rowH;});
+  $('#tree').innerHTML=s+'</svg>';
+}
+
+/* ============ SENSITIVITY ============ */
+function tornadoData(metric){
+  const a=A(),x=curX(a),F=focusIndex(a);
+  const f=xx=>metric==='delta'?deltaEU(a,xx):metric==='worst'?evalOpt(a,a.options[F],xx).worst*100:evalOpt(a,a.options[F],xx).eu;
+  const base=f(x);return a.drivers.map(d=>{const lo=f({...x,[d.id]:0}),hi=f({...x,[d.id]:100});return {name:d.name,lo,hi,base,range:Math.abs(hi-lo)};}).sort((p,q)=>q.range-p.range);
+}
+function breakEven(){
+  const a=A(),x=curX(a);return a.drivers.map(d=>{const pts=[];let prev=deltaEU(a,{...x,[d.id]:0});for(let v=1;v<=100;v++){const c=deltaEU(a,{...x,[d.id]:v});if((prev<0)!==(c<0))pts.push(v);prev=c;}return {name:d.name,cur:d.value,pts};});
+}
+function renderSens(){
+  const a=A(),tm=a.settings.tm||'delta';$$('[data-tm]').forEach(b=>b.classList.toggle('primary',b.dataset.tm===tm));
+  const td=tornadoData(tm);const lab={delta:'ΔEU (ทำ − ไม่ทำ)',worst:'P(Worst) %',eu:'EU'}[tm];
+  mk('cTor',{type:'bar',data:{labels:td.map(t=>t.name),datasets:[{label:'ตัวขับเคลื่อน = 0',data:td.map(t=>[t.base,t.lo]),backgroundColor:css('--accent2')},{label:'ตัวขับเคลื่อน = 100',data:td.map(t=>[t.base,t.hi]),backgroundColor:css('--accent')}]},
+   options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,scales:{x:{title:{display:true,text:lab+(td[0]?` (ฐาน = ${td[0].base.toFixed(1)})`:'')}},y:{stacked:true,ticks:{color:css('--text')}}},plugins:{tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.raw[1].toFixed(1)}}}}});
+  const be=breakEven(),[fi,sq]=deltaPair(a),d0=deltaEU(a,curX(a));
+  let h=`<tr><th>ตัวขับเคลื่อน</th><th>ค่าปัจจุบัน</th><th>จุดพลิก</th><th>ความหมาย</th></tr>`;
+  be.forEach(b=>{h+=`<tr><td>${esc(b.name)}</td><td class="num">${b.cur}</td><td class="num">${b.pts.length?b.pts.join(', '):'—'}</td><td>${b.pts.length?`ถ้าค่าข้าม ${b.pts[0]} คำแนะนำจะเปลี่ยนจาก "${esc(d0>=0?a.options[fi]?.name:a.options[sq].name)}" เป็นอีกทางเลือก`:'ไม่เปลี่ยนคำแนะนำในช่วง 0–100 (เมื่อตัวอื่นคงที่)'}</td></tr>`;});
+  $('#beTable').innerHTML=h;
+}
+
+/* ============ MONTE CARLO ============ */
+function renderMCControls(){const a=A();$('#mcMetric').innerHTML=a.metrics.map((m,i)=>`<option value="${m.id}">${esc(m.name)}</option>`).join('');$('#mcN').value=a.settings.mcN;$('#nV').textContent=a.settings.mcN;$('#mcS').value=a.settings.mcS;$('#sigV').textContent=(+a.settings.mcS).toFixed(1);}
+function runMC(){
+  const a=A();if(!a.options.some(o=>o.scenarios.length))return;const N=+$('#mcN').value,mult=+$('#mcS').value,r=mulberry32(2026),t0=performance.now();
+  const res=a.options.map(()=>({u:[],m:Object.fromEntries(a.metrics.map(m=>[m.id,[]]))}));
+  for(let i=0;i<N;i++){const x={};a.drivers.forEach(d=>x[d.id]=clamp(+d.value+mult*(+d.sigma)*normal(r),0,100));
+    a.options.forEach((o,oi)=>{if(!o.scenarios.length)return;const p=probs(a,o,x);let u=r(),k=0,acc=p[0];while(u>acc&&k<p.length-1){k++;acc+=p[k];}const sc=o.scenarios[k];
+      res[oi].u.push(+sc.util+(r()-0.5)*10);a.metrics.forEach(m=>res[oi].m[m.id].push(triSample(sc.m[m.id]||[0,0,0],r)));});}
+  $('#mcInfo').textContent=`${N.toLocaleString()} รอบ × ${a.options.length} ทางเลือก · ${(performance.now()-t0).toFixed(0)} ms`;
+  const H=(id,arrs,title)=>{const all=arrs.flat();if(!all.length)return;const lo=Math.min(...all),hi=Math.max(...all),B=24,w=(hi-lo)/B||1;
+    const labels=new Array(B).fill(0).map((_,i)=>fmt(lo+w*i+w/2));
+    mk(id,{type:'bar',data:{labels,datasets:arrs.map((arr,oi)=>{const c=new Array(B).fill(0);arr.forEach(v=>c[clamp(Math.floor((v-lo)/w),0,B-1)]++);return {label:a.options[oi].name,data:c.map(v=>v/N*100),backgroundColor:optColor(oi)+'99',borderColor:optColor(oi),borderWidth:1,barPercentage:1,categoryPercentage:1,grouped:false};})},
+      options:{responsive:true,maintainAspectRatio:false,scales:{y:{title:{display:true,text:'% ของรอบ'}},x:{title:{display:true,text:title},ticks:{maxTicksLimit:8}}}}});};
+  H('hU',res.map(r=>r.u),'อรรถประโยชน์');const mid=$('#mcMetric').value;const mm=a.metrics.find(m=>m.id===mid);
+  if(mm){$('#hMtitle').textContent='การแจกแจง: '+mm.name+' ('+mm.unit+')';H('hM',res.map(r=>r.m[mid]),mm.unit);}
+  let h='<tr><th>ทางเลือก</th><th>ตัวชี้วัด</th><th>เฉลี่ย</th><th>P10</th><th>P50</th><th>P90</th></tr>';
+  a.options.forEach((o,oi)=>{if(!res[oi].u.length)return;const rows=[['อรรถประโยชน์',res[oi].u],...a.metrics.map(m=>[m.name+' ('+m.unit+')',res[oi].m[m.id]])];
+    rows.forEach(([n,arr],j)=>{const mean=arr.reduce((p,c)=>p+c,0)/arr.length;h+=`<tr>${j===0?`<td rowspan="${rows.length+1}"><span class="sw" style="background:${optColor(oi)}"></span><b>${esc(o.name)}</b></td>`:''}<td>${esc(n)}</td><td class="num">${fmt(mean)}</td><td class="num">${fmt(q(arr,.1))}</td><td class="num">${fmt(q(arr,.5))}</td><td class="num">${fmt(q(arr,.9))}</td></tr>`;});
+    h+=`<tr><td><b>P(อรรถประโยชน์ติดลบ)</b></td><td class="num" colspan="4" style="text-align:left">${pct(res[oi].u.filter(v=>v<0).length/N)}</td></tr>`;});
+  $('#mcTable').innerHTML=h;
+}
+
+/* ============ EVENTS / FLOW ============ */
+let recalcT,mcT;
+function recalc(){clearTimeout(recalcT);recalcT=setTimeout(()=>{renderDash();renderSens();drawStake();updateScP();clearTimeout(mcT);mcT=setTimeout(runMC,400);},90);}
+function commit(level){save();if(level==='full'){renderAll();}else recalc();}
+function renderAll(){renderSelect();renderSide();renderSetup();renderSc();renderStake();renderMCControls();chartDefaults();const pw=$('#probWrap');pw.dataset.n='';recalc();}
+function setPath(obj,path,val){const ks=path.split('.');let o=obj;for(let i=0;i<ks.length-1;i++)o=o[ks[i]];o[ks[ks.length-1]]=val;}
+document.addEventListener('input',e=>{const el=e.target;if(!el.dataset||!el.dataset.p)return;const a=A();
+  let v=el.dataset.bool!==undefined?el.checked:el.value;if(el.dataset.num!==undefined)v=v===''?0:+v;setPath(a,el.dataset.p,v);
+  if(el.dataset.live){const t=document.getElementById(el.dataset.live);if(t)t.textContent=v;}
+  const re=el.dataset.re;save();
+  if(re==='head'){renderSelect();renderSide();}
+  else if(re==='side'){renderSide();}
+  else if(re==='sccls'){const c=document.getElementById('card_'+el.dataset.sid);if(c)c.className='card sc-card '+v;}
+  else if(re==='all'){renderSide();}
+  if(el.dataset.p==='category')renderSetup();
+  recalc();});
+document.addEventListener('change',e=>{const el=e.target;if(el.dataset&&el.dataset.bool!==undefined&&el.dataset.p){setPath(A(),el.dataset.p,el.checked);save();recalc();}});
+$('#selA').onchange=e=>{DB.cur=e.target.value;save();renderAll();};
+$('#bNew').onclick=()=>{const t=prompt('ชื่อการวิเคราะห์นโยบาย:','การวิเคราะห์นโยบายใหม่');if(t===null)return;
+  const keys=Object.keys(CATS);const c=prompt('เลือกประเภท (พิมพ์หมายเลข):\n'+keys.map((k,i)=>`${i+1}. ${CATS[k].name}`).join('\n'),'1');if(c===null)return;
+  const cat=keys[clamp((+c||1)-1,0,keys.length-1)];const n=blank(cat,t||'การวิเคราะห์นโยบายใหม่');DB.analyses.push(n);DB.cur=n.id;save();renderAll();goTab('setup');};
+$('#bTpl').onclick=()=>{const names=TEMPLATES.map(f=>f().title);const c=prompt('เพิ่มแม่แบบตัวอย่าง (พิมพ์หมายเลข):\n'+names.map((n,i)=>`${i+1}. ${n}`).join('\n'),'1');if(c===null)return;
+  const f=TEMPLATES[clamp((+c||1)-1,0,TEMPLATES.length-1)];const n=f();DB.analyses.push(n);DB.cur=n.id;save();renderAll();};
+$('#bDup').onclick=()=>{const c=JSON.parse(JSON.stringify(A()));c.id=uid();c.title+=' (สำเนา)';DB.analyses.push(c);DB.cur=c.id;save();renderAll();};
+$('#bDel').onclick=()=>{if(DB.analyses.length<=1){alert('ต้องมีอย่างน้อย 1 การวิเคราะห์');return;}if(!confirm('ลบ "'+A().title+'" ถาวร?'))return;DB.analyses=DB.analyses.filter(a=>a.id!==DB.cur);DB.cur=DB.analyses[0].id;save();renderAll();};
+$('#bExp').onclick=()=>{const blob=new Blob([JSON.stringify(A(),null,2)],{type:'application/json'});const u=URL.createObjectURL(blob);const l=document.createElement('a');l.href=u;l.download=(A().title.replace(/[\\/:*?"<>|]/g,'_')||'analysis')+'.json';l.click();setTimeout(()=>URL.revokeObjectURL(u),1000);};
+$('#bImp').onclick=()=>$('#fImp').click();
+$('#fImp').onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const d=JSON.parse(rd.result);const list=Array.isArray(d)?d:d.analyses?d.analyses:[d];list.forEach(x=>{if(!x.options||!x.drivers)throw 0;x.id=uid();x.settings=Object.assign({thr:55,prospect:false,focus:0,mcN:10000,mcS:1,tm:'delta',scTab:0},x.settings||{});DB.analyses.push(x);DB.cur=x.id;});save();renderAll();}catch(err){alert('ไฟล์ไม่ถูกต้อง');}};rd.readAsText(f);e.target.value='';};
+function goTab(t){$$('#tabs button').forEach(x=>x.classList.toggle('active',x.dataset.tab===t));$$('section.tab').forEach(s=>s.classList.toggle('active',s.id==='tab-'+t));Object.values(charts).forEach(c=>c.resize());}
+$$('#tabs button').forEach(b=>b.onclick=()=>goTab(b.dataset.tab));
+$$('[data-tm]').forEach(b=>b.onclick=()=>{A().settings.tm=b.dataset.tm;save();renderSens();});
+$('#mcN').oninput=e=>{$('#nV').textContent=e.target.value;A().settings.mcN=+e.target.value;save();};
+$('#mcS').oninput=e=>{$('#sigV').textContent=(+e.target.value).toFixed(1);A().settings.mcS=+e.target.value;save();};
+$('#mcMetric').onchange=runMC;$('#runMC').onclick=runMC;
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{chartDefaults();renderAll();});
+
+function init(){load();if(!DB.analyses.find(a=>a.id===DB.cur))DB.cur=DB.analyses[0].id;chartDefaults();renderAll();}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+</script>
+</body>
+</html>
